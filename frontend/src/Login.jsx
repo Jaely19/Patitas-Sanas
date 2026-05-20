@@ -12,16 +12,15 @@ function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Aquí en el futuro conectarás la autenticación real con Supabase
-    // Por ahora, simulamos el éxito y los mandamos directo a agendar
     if (isLogin) {
-      alert(`¡Bienvenido de nuevo, ${email}! Redirigiendo a tu agenda...`);
+      // CAMINO 1: Iniciar sesión (Usuario existente)
+      alert(`¡Bienvenido de nuevo, ${email}!`);
+      navigate('/portal-cliente'); // Lo mandamos a su panel
     } else {
-      alert(`¡Cuenta creada con éxito! Ahora por favor completa los datos de tu cita.`);
+      // CAMINO 2: Registrarse (Usuario completamente nuevo)
+      alert(`¡Cuenta creada con éxito! Ahora por favor completa los datos de tu primera cita.`);
+      navigate('/agendar-cita'); // Lo mandamos directo a reservar
     }
-    
-    // REDIRECCIÓN MÁGICA: Los mandamos a la agenda tras el login/registro
-    navigate('/portal-cliente');
   };
 
   return (
