@@ -1,0 +1,50 @@
+.auth-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f7f7ff;
+  font-family: 'Nunito Sans', sans-serif;
+  color: #292faa;
+}
+
+.auth-container {
+  background: white;
+  width: 100%;
+  max-width: 450px;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.auth-header { text-align: center; margin-bottom: 30px; }
+.auth-header h1 { font-family: 'IBM Plex Sans', sans-serif; font-size: 2.2rem; color: #012b81; margin: 0; }
+.auth-header h1 span { color: #FF9B1B; }
+.auth-header p { color: #4b4d75; font-size: 1.1rem; margin-top: 5px; }
+
+.tabs { display: flex; margin-bottom: 25px; border-bottom: 2px solid #eee; }
+.tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-weight: 700; color: #888; transition: 0.3s; }
+.tab.active { color: #012b81; border-bottom: 3px solid #012b81; }
+
+.input-group { margin-bottom: 20px; }
+.input-group label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 0.9rem; }
+.input-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
+
+.btn-submit {
+  width: 100%;
+  padding: 15px;
+  background-color: #012b81;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: 0.3s;
+  margin-top: 10px;
+}
+.btn-submit:hover { opacity: 0.9; transform: translateY(-2px); }
+
+.error-msg { color: #e74c3c; background: #fadbd8; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 20px; font-weight: 600; }
+.back-home { display: block; text-align: center; margin-top: 25px; color: #888; text-decoration: none; font-weight: 600; }
+.back-home:hover { color: #012b81; }
