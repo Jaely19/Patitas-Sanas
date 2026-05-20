@@ -1,50 +1,120 @@
-.auth-wrapper {
+/* Centrar todo en la pantalla con un fondo gris claro */
+.login-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f7f7ff;
-  font-family: 'Nunito Sans', sans-serif;
-  color: #292faa;
+  background-color: #f4f7f6;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 20px;
 }
 
-.auth-container {
+/* La tarjeta blanca donde va el formulario */
+.login-card {
   background: white;
-  width: 100%;
-  max-width: 450px;
   padding: 40px;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
 }
 
-.auth-header { text-align: center; margin-bottom: 30px; }
-.auth-header h1 { font-family: 'IBM Plex Sans', sans-serif; font-size: 2.2rem; color: #012b81; margin: 0; }
-.auth-header h1 span { color: #FF9B1B; }
-.auth-header p { color: #4b4d75; font-size: 1.1rem; margin-top: 5px; }
+.login-card h2 {
+  color: #012b81; /* Azul corporativo */
+  margin-bottom: 25px;
+  font-size: 24px;
+}
 
-.tabs { display: flex; margin-bottom: 25px; border-bottom: 2px solid #eee; }
-.tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-weight: 700; color: #888; transition: 0.3s; }
-.tab.active { color: #012b81; border-bottom: 3px solid #012b81; }
+/* Pestañas de Iniciar Sesión / Registro */
+.tabs {
+  display: flex;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #eee;
+}
 
-.input-group { margin-bottom: 20px; }
-.input-group label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 0.9rem; }
-.input-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
+.tabs button {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  color: #a0aabf;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
 
+/* Pestaña activa con línea naranja */
+.tabs button.active {
+  color: #012b81;
+  border-bottom: 3px solid #f39c12; 
+}
+
+/* Estilos de las cajas de texto */
+.login-form {
+  text-align: left;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #012b81;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box; /* Evita que se salgan de la caja */
+  transition: border-color 0.3s;
+}
+
+.input-group input:focus {
+  border-color: #f39c12; /* Borde naranja al escribir */
+  outline: none;
+}
+
+/* Botón principal */
 .btn-submit {
   width: 100%;
   padding: 15px;
-  background-color: #012b81;
+  background-color: #f39c12; /* Naranja corporativo */
   color: white;
   border: none;
   border-radius: 8px;
-  font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 16px;
+  font-weight: bold;
   cursor: pointer;
-  transition: 0.3s;
+  transition: background-color 0.3s;
   margin-top: 10px;
 }
-.btn-submit:hover { opacity: 0.9; transform: translateY(-2px); }
 
-.error-msg { color: #e74c3c; background: #fadbd8; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 20px; font-weight: 600; }
-.back-home { display: block; text-align: center; margin-top: 25px; color: #888; text-decoration: none; font-weight: 600; }
-.back-home:hover { color: #012b81; }
+.btn-submit:hover {
+  background-color: #e67e22;
+}
+
+/* Enlace de volver */
+.login-footer {
+  margin-top: 25px;
+}
+
+.login-footer a {
+  color: #012b81;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: bold;
+  transition: opacity 0.3s;
+}
+
+.login-footer a:hover {
+  opacity: 0.7;
+}
