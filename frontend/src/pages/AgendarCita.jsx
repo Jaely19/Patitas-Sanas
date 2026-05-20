@@ -1,59 +1,113 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '../supabase';
+import { supabase } from '../supabase'; // Conexión a la nube
 import './AgendarCita.css';
 
 function AgendarCita() {
   const navigate = useNavigate();
   
-  // 1. Obtenemos la fecha real de la computadora
+  // 1. Fechas
   const fechaActual = new Date();
-  const mesActual = fechaActual.getMonth(); // 0 = Enero, 1 = Febrero...
+  const mesActual = fechaActual.getMonth(); 
   const anioActual = fechaActual.getFullYear();
   const hoy = fechaActual.getDate();
   
   const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
-  // Estados para guardar lo que el cliente selecciona
+  // Estados de selección
   const [diaSeleccionado, setDiaSeleccionado] = useState(hoy);
   const [horaSeleccionada, setHoraSeleccionada] = useState('06:00 PM');
   
   // Estados del formulario
-  const [nombre, setNombre] = useState('');
-  const [mascota, setMascota] = useState('');
-  const [servicio, setServicio] = useState('consulta');
+  const [nombreDueño, setNombreDueño] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [direccion, setDirección] = useState('');
+  const [nombreMascota, setNombreMascota] = useState('');
+  const [especie, setEspecie] = useState('');
+  const [servicio, setServicio] = useState('Consulta General');
+  
+  // Estado de carga
+  const [guardando, setGuardando] = useState(false);
 
-  // Función para manejar el envío
-  const guardarRegistroCita = (e) => {
+  // FUNCIÓN MÁGICA: GUARDAR EN LA BASE DE DATOS
+  const guardarRegistroCita = async (e) => {
     e.preventDefault();
-    alert(`¡Reserva Confirmada!\n\nPaciente: ${mascota}\nFecha: ${diaSeleccionado} de ${meses[mesActual]} a las ${horaSeleccionada}\n\nTe esperamos en clínica.`);
-    navigate('/');
+    setGuardando(true);
+
+    try {
+      // PASO 1: Guardar al Dueño
+      const { data: clienteInsertado, error: errorCliente } = await supabase
+        .from('clientes')
+        .insert([{ 
+          nombre_completo: nombreDueño, 
+          telefono: telefono, 
+          direccion: direccion 
+        }])
+        .select()
+        .single();
+
+      if (errorCliente) throw errorCliente;
+
+      // PASO 2: Guardar a la Mascota amarrada al Dueño
+      const { data: mascotaInsertada, error: errorMascota } = await supabase
+        .from('mascotas')
+        .insert([{ 
+          nombre: nombreMascota, 
+          especie: especie, 
+          id_cliente: clienteInsertado.id_cliente 
+        }])
+        .select()
+        .single();
+
+      if (errorMascota) throw errorMascota;
+
+      // Convertir formato de hora (Ej: 04:00 PM a 16:00:00) para PostgreSQL
+      let [time, modifier] = horaSeleccionada.split(' ');
+      let [hours, minutes] = time.split(':');
+      if (hours === '12') hours = '00';
+      if (modifier === 'PM') hours = parseInt(hours, 10) + 12;
+      
+      const mesFormateado = String(mesActual + 1).padStart(2, '0');
+      const diaFormateado = String(diaSeleccionado).padStart(2, '0');
+      const timestampCita = `${anioActual}-${mesFormateado}-${diaFormateado} ${hours}:${minutes}:00`;
+
+      // PASO 3: Guardar la Cita amarrada a la Mascota y al Doctor #1
+      const { error: errorCita } = await supabase
+        .from('citas')
+        .insert([{
+          fecha_hora: timestampCita,
+          motivo: servicio,
+          id_mascota: mascotaInsertada.id_mascota,
+          id_veterinario: 1
+        }]);
+
+      if (errorCita) throw errorCita;
+
+      // ÉXITO: Mensaje nuevo y envío al Portal del Cliente
+      alert(`¡Cita Agendada y Guardada en la Nube!\n\nPaciente: ${nombreMascota}\nFecha: ${diaSeleccionado} de ${meses[mesActual]} a las ${horaSeleccionada}`);
+      navigate('/portal-cliente'); 
+
+    } catch (err) {
+      alert('Hubo un error al guardar la reservación. Revisa la consola.');
+      console.error('Detalle del error:', err.message);
+    } finally {
+      setGuardando(false);
+    }
   };
 
-  // 2. Generador INTELIGENTE de días del calendario
   const renderDias = () => {
     const dias = [];
-    
-    // Averiguamos qué día de la semana cae el día 1 de este mes
     const primerDiaDelMes = new Date(anioActual, mesActual, 1).getDay();
-    
-    // Ajustamos para que la cuadrícula empiece en Lunes
     const espaciosVacios = primerDiaDelMes === 0 ? 6 : primerDiaDelMes - 1;
-    
-    // Averiguamos el total de días reales que tiene este mes (28, 30 o 31)
     const diasTotalesDelMes = new Date(anioActual, mesActual + 1, 0).getDate();
 
-    // Dibujamos los espacios vacíos al inicio de la tabla
     for (let i = 0; i < espaciosVacios; i++) {
       dias.push(<div key={`empty-${i}`} className="day empty"></div>);
     }
     
-    // Dibujamos los días reales
     for (let i = 1; i <= diasTotalesDelMes; i++) {
       const fechaIteracion = new Date(anioActual, mesActual, i);
       const diaSemana = fechaIteracion.getDay();
-      
-      // Regla de negocio: Bloquear fines de semana (0=Dom, 6=Sab) y días pasados
       const esFinDeSemana = diaSemana === 0 || diaSemana === 6;
       const esPasado = i < hoy; 
       
@@ -65,7 +119,6 @@ function AgendarCita() {
           key={i} 
           className={`day ${isDisabled ? 'disabled' : ''} ${isSelected ? 'selected' : ''}`}
           onClick={() => !isDisabled && setDiaSeleccionado(i)}
-          title={isDisabled ? "No disponible" : "Seleccionar este día"}
         >
           {i}
         </div>
@@ -79,8 +132,8 @@ function AgendarCita() {
   return (
     <div className="agendar-wrapper">
       <div className="container">
-        <Link to="/" style={{ color: '#012b81', textDecoration: 'none', fontWeight: 'bold', marginBottom: '20px', display: 'inline-block' }}>
-          ← Volver al inicio
+        <Link to="/portal-cliente" style={{ color: '#012b81', textDecoration: 'none', fontWeight: 'bold', marginBottom: '20px', display: 'inline-block' }}>
+          ← Cancelar y volver al Portal
         </Link>
         
         <div className="appointment-card">
@@ -90,14 +143,13 @@ function AgendarCita() {
           </div>
 
           <div className="booking-grid">
-            {/* SECCIÓN DEL CALENDARIO DINÁMICO */}
             <div className="calendar-box">
               <h3>1. Selecciona el día ({meses[mesActual]} {anioActual})</h3>
               <div className="calendar">
                 <div className="cal-header">
-                  <span style={{cursor: 'pointer'}}>&lt;</span>
+                  <span>&lt;</span>
                   <span>{meses[mesActual]} {anioActual}</span>
-                  <span style={{cursor: 'pointer'}}>&gt;</span>
+                  <span>&gt;</span>
                 </div>
                 <div className="cal-grid">
                   <div className="day-name">LU</div><div className="day-name">MA</div><div className="day-name">MI</div>
@@ -108,68 +160,63 @@ function AgendarCita() {
               </div>
             </div>
 
-            {/* SECCIÓN DE HORARIOS */}
             <div className="time-box">
               <h3>2. Horarios Disponibles</h3>
               <div className="time-slots">
-                {horarios.map(hora => {
-                  const isUnavailable = hora === '03:00 PM';
-                  return (
-                    <div 
-                      key={hora}
-                      className={`slot ${isUnavailable ? 'unavailable' : ''} ${horaSeleccionada === hora ? 'selected' : ''}`}
-                      onClick={() => !isUnavailable && setHoraSeleccionada(hora)}
-                    >
-                      {hora}
-                    </div>
-                  );
-                })}
+                {horarios.map(hora => (
+                  <div 
+                    key={hora}
+                    className={`slot ${horaSeleccionada === hora ? 'selected' : ''}`}
+                    onClick={() => setHoraSeleccionada(hora)}
+                  >
+                    {hora}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* FORMULARIO DE RESERVA */}
           <div className="form-section">
             <h3>3. Información de Registro</h3>
             <form className="form-grid" onSubmit={guardarRegistroCita}>
               <div className="input-group">
                 <label>Nombre del Dueño</label>
-                <input type="text" placeholder="Ej. Juan Pérez" value={nombre} onChange={e => setNombre(e.target.value)} required />
+                <input type="text" placeholder="Ej. Juan Pérez" value={nombreDueño} onChange={e => setNombreDueño(e.target.value)} required />
               </div>
               <div className="input-group">
                 <label>Teléfono de Contacto</label>
-                <input type="tel" placeholder="55 0000 0000" required />
+                <input type="tel" placeholder="55 0000 0000" value={telefono} onChange={e => setTelefono(e.target.value)} required />
               </div>
               <div className="input-group">
                 <label>Dirección</label>
-                <input type="text" placeholder="Calle, Número, Colonia" required />
+                <input type="text" placeholder="Calle, Número, Colonia" value={direccion} onChange={e => setDirección(e.target.value)} required />
               </div>
               <div className="input-group">
                 <label>Nombre de la Mascota</label>
-                <input type="text" placeholder="Ej. Toby" value={mascota} onChange={e => setMascota(e.target.value)} required />
+                <input type="text" placeholder="Ej. Toby" value={nombreMascota} onChange={e => setNombreMascota(e.target.value)} required />
               </div>
               <div className="input-group">
                 <label>Especie de la Mascota</label>
-                <select required defaultValue="">
+                <select value={especie} onChange={e => setEspecie(e.target.value)} required>
                   <option value="" disabled>Selecciona una opción...</option>
-                  <option value="canino">Perro (Canino)</option>
-                  <option value="felino">Gato (Felino)</option>
-                  <option value="ave">Ave</option>
-                  <option value="roedor">Roedor</option>
+                  <option value="Perro">Perro (Canino)</option>
+                  <option value="Gato">Gato (Felino)</option>
+                  <option value="Ave">Ave</option>
+                  <option value="Roedor">Roedor</option>
                 </select>
               </div>
               <div className="input-group">
                 <label>Tipo de Servicio</label>
                 <select value={servicio} onChange={e => setServicio(e.target.value)}>
-                  <option value="oncologia">Oncología (Dr. Celis)</option>
-                  <option value="consulta">Consulta General</option>
-                  <option value="cirugia">Cirugía / Ortopedia</option>
-                  <option value="interna">Medicina Interna</option>
+                  <option value="Consulta General">Consulta General</option>
+                  <option value="Oncología">Oncología (Dr. Celis)</option>
+                  <option value="Cirugía / Ortopedia">Cirugía / Ortopedia</option>
+                  <option value="Medicina Interna">Medicina Interna</option>
                 </select>
               </div>
               
-              <button type="submit" className="btn-confirm">
-                Confirmar Reservación
+              <button type="submit" className="btn-confirm" disabled={guardando}>
+                {guardando ? 'Guardando en la Nube...' : 'Confirmar Reservación'}
               </button>
             </form>
           </div>
