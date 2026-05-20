@@ -69,7 +69,7 @@ function AgendarCita() {
       
       const mesFormateado = String(mesActual + 1).padStart(2, '0');
       const diaFormateado = String(diaSeleccionado).padStart(2, '0');
-      const timestampCita = `${anioActual}-${mesFormateado}-${diaFormateado} ${hours}:${minutes}:00`;
+      const timestampCita = `${anioActual}-${mesFormateado}-${diaFormateado}T${hours}:${minutes}:00-06:00`;
 
       // PASO 3: Guardar la Cita amarrada a la Mascota y al Doctor #1
       const { error: errorCita } = await supabase
