@@ -7,6 +7,7 @@ import Citas from './pages/Citas';
 import Recepcion from './pages/Recepcion'; 
 import Medico from './pages/Medico'; 
 import AgendarCita from './pages/AgendarCita'; 
+import PortalCliente from './pages/PortalCliente';
 
 function App() {
   return (
@@ -14,7 +15,8 @@ function App() {
       <Routes>
         {/* === RUTA PÚBLICA (Landing Page sin menú lateral) === */}
         <Route path="/" element={<Inicio />} />
-
+        
+        <Route path="/portal-cliente" element={<PortalCliente />} />
         {/* === RUTA DE LOGIN === */}
         <Route path="/login" element={<Login />} />
 

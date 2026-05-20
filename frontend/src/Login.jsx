@@ -21,7 +21,7 @@ function Login() {
     }
     
     // REDIRECCIÓN MÁGICA: Los mandamos a la agenda tras el login/registro
-    navigate('/agendar-cita');
+    navigate('/portal-cliente');
   };
 
   return (
