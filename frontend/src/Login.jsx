@@ -1,106 +1,81 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import './Login.css';
+import './Login.css'; // Asegúrate de que el nombre de tu archivo CSS coincida
 
 function Login() {
-  const [tabActiva, setTabActiva] = useState('login');
-  const [error, setError] = useState(false);
-  const navigate = useNavigate();
-
-  // Estados para el formulario
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  // Función que se ejecuta al darle al botón
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setError(false);
     
-    const correoLimpio = email.toLowerCase().trim();
-
-    // Lógica de roles basada en tu HTML original
-    if (correoLimpio === 'vet@gmail.com' && password === '12345') {
-      // Redirige al panel del veterinario (ruta que armaremos después)
-      navigate('/panel-vet');
-    } else if (correoLimpio === 'rec@gmail.com' && password === '12345') {
-      // Redirige al panel de recepción (que era tu dashboard oscuro)
-      navigate('/recepcion'); 
-    } else if ((correoLimpio === 'vet@gmail.com' || correoLimpio === 'rec@gmail.com') && password !== '12345') {
-      setError(true);
+    // Aquí en el futuro conectarás la autenticación real con Supabase
+    // Por ahora, simulamos el éxito y los mandamos directo a agendar
+    if (isLogin) {
+      alert(`¡Bienvenido de nuevo, ${email}! Redirigiendo a tu agenda...`);
     } else {
-      // Si es un cliente normal, lo mandamos a la agenda pública
-      navigate('/agendar-cita');
+      alert(`¡Cuenta creada con éxito! Ahora por favor completa los datos de tu cita.`);
     }
-  };
-
-  const handleRegister = (e) => {
-    e.preventDefault();
-    alert('¡Cuenta creada con éxito! Ahora puedes agendar tus citas.');
+    
+    // REDIRECCIÓN MÁGICA: Los mandamos a la agenda tras el login/registro
     navigate('/agendar-cita');
   };
 
   return (
-    <div className="auth-wrapper">
-      <div className="auth-container">
+    <div className="login-wrapper">
+      <div className="login-card">
+        <h2>Portal de Acceso</h2>
         
-        <div className="auth-header">
-          <h1>Patitas<span> Sanas</span></h1>
-          <p>Portal de Acceso</p>
-        </div>
-
-        {/* PESTAÑAS (TABS) */}
         <div className="tabs">
-          <div className={`tab ${tabActiva === 'login' ? 'active' : ''}`} onClick={() => setTabActiva('login')}>
+          <button 
+            className={isLogin ? 'active' : ''} 
+            onClick={() => setIsLogin(true)}
+          >
             Iniciar Sesión
-          </div>
-          <div className={`tab ${tabActiva === 'register' ? 'active' : ''}`} onClick={() => setTabActiva('register')}>
+          </button>
+          <button 
+            className={!isLogin ? 'active' : ''} 
+            onClick={() => setIsLogin(false)}
+          >
             Registrarse
-          </div>
+          </button>
         </div>
 
-        {/* FORMULARIO DE LOGIN */}
-        {tabActiva === 'login' && (
-          <div>
-            {error && <p className="error-msg">Correo o contraseña incorrectos.</p>}
-            <form onSubmit={handleLogin}>
-              <div className="input-group">
-                <label>Correo Electrónico</label>
-                <input type="email" placeholder="ejemplo@correo.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-              </div>
-              <div className="input-group">
-                <label>Contraseña</label>
-                <input type="password" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required />
-              </div>
-              <button type="submit" className="btn-submit">Entrar</button>
-            </form>
+        <form onSubmit={handleSubmit} className="login-form">
+          {/* EL FORMULARIO AHORA ES IDÉNTICO PARA AMBOS CASOS (SOLO CORREO Y PASSWORD) */}
+          <div className="input-group">
+            <label>Correo Electrónico</label>
+            <input 
+              type="email" 
+              placeholder="ejemplo@correo.com" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required 
+            />
           </div>
-        )}
 
-        {/* FORMULARIO DE REGISTRO */}
-        {tabActiva === 'register' && (
-          <div>
-            <form onSubmit={handleRegister}>
-              <div className="input-group">
-                <label>Tu Nombre Completo</label>
-                <input type="text" placeholder="Ej. Juan Pérez" required />
-              </div>
-              <div className="input-group">
-                <label>Nombre de tu Mascota</label>
-                <input type="text" placeholder="Ej. Toby" required />
-              </div>
-              <div className="input-group">
-                <label>Correo Electrónico</label>
-                <input type="email" placeholder="ejemplo@correo.com" required />
-              </div>
-              <div className="input-group">
-                <label>Crear Contraseña</label>
-                <input type="password" placeholder="Mínimo 8 caracteres" required />
-              </div>
-              <button type="submit" className="btn-submit" style={{ backgroundColor: '#FF9B1B' }}>Crear Cuenta</button>
-            </form>
+          <div className="input-group">
+            <label>{isLogin ? 'Contraseña' : 'Crear Contraseña'}</label>
+            <input 
+              type="password" 
+              placeholder={isLogin ? 'Tu contraseña' : 'Mínimo 8 caracteres'} 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required 
+            />
           </div>
-        )}
 
-        <Link to="/" className="back-home">← Volver al inicio</Link>
+          <button type="submit" className="btn-submit">
+            {isLogin ? 'Entrar a mi cuenta' : 'Crear Cuenta'}
+          </button>
+        </form>
+
+        <div className="login-footer">
+          <Link to="/">← Volver al inicio</Link>
+        </div>
       </div>
     </div>
   );

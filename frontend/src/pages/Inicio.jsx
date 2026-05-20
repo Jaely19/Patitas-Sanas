@@ -25,7 +25,7 @@ function Inicio() {
           <h1>Consultorio Veterinario Patitas Sanas</h1>
           <p>Ciencia para curarlos, corazón para cuidarlos. Brindamos consultas generales, vacunación y medicina preventiva en un ambiente cálido y seguro para los consentidos de la casa.</p>
           <p className="horario">Horario de atención: 11:00 am a 6:00 pm</p>
-          <Link to="/clientes" className="btn-contacto" style={{ backgroundColor: 'var(--accent-color)' }}>
+          <Link to="/login" className="btn-contacto" style={{ backgroundColor: 'var(--accent-color)' }}>
             ¡Agenda tu cita ahora!
           </Link>
         </div>

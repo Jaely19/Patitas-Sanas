@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '../supabase';
 import { Link } from 'react-router-dom';
 import './Recepcion.css';
 
@@ -13,29 +14,56 @@ function Recepcion() {
     { id: 5, hora: '02:30 PM', disponible: true, horaTexto: '02:30 PM' }
   ]);
 
-  // CARGAR CITAS REALES DESDE POSTGRESQL (NUESTRO JOIN)
+  // CARGAR CITAS REALES DIRECTAMENTE DESDE SUPABASE EN LA NUBE
   useEffect(() => {
-    fetch('http://localhost:4000/api/citas_detalladas')
-      .then(res => res.json())
-      .then(datos => {
-        if (datos && datos.length > 0) {
-          const citasFormateadas = datos.map(c => {
-            const horaStr = new Date(c.fecha_hora).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    const obtenerCitasDesdeNube = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('citas')
+          .select(`
+            id_cita,
+            fecha_hora,
+            motivo,
+            mascotas (
+              nombre,
+              clientes ( nombre_completo )
+            ),
+            veterinarios ( nombre_completo )
+          `)
+          .order('fecha_hora', { ascending: true });
+
+        if (error) throw error;
+
+        if (data) {
+          const citasFormateadas = data.map(c => {
+            const horaStr = new Date(c.fecha_hora).toLocaleTimeString('es-MX', { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            });
+            
             return {
-              id: `db-${c.id_cita}`,
+              id: `supa-${c.id_cita}`,
               hora: horaStr,
-              mascota: c.nombre_mascota,
+              mascota: c.mascotas?.nombre || 'Desconocido',
               motivo: c.motivo,
-              doctor: `Dr. ${c.nombre_veterinario}`,
-              status: 'Agendada en Web',
+              doctor: c.veterinarios ? `Dr. ${c.veterinarios.nombre_completo}` : 'Por asignar',
+              status: 'Agendada en la Nube',
               cobrado: false,
               precio: 350
             };
           });
-          setCitas(prev => [...prev, ...citasFormateadas]);
+
+          setCitas(prev => {
+            const estaticas = prev.filter(c => typeof c.id === 'number');
+            return [...estaticas, ...citasFormateadas];
+          });
         }
-      })
-      .catch(err => console.error('Error al unificar con base de datos:', err));
+      } catch (err) {
+        console.error('Error al conectar con Supabase:', err.message);
+      }
+    };
+
+    obtenerCitasDesdeNube();
   }, []);
 
   const handleCobrar = (id, monto) => {
