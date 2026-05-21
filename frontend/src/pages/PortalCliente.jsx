@@ -4,16 +4,8 @@ import { supabase } from '../supabase';
 import './PortalCliente.css';
 
 function PortalCliente() {
-  const [misCitas, setMisCitas] = useState([]);
-  const [misMascotas, setMisMascotas] = useState([]);
-  const [cargando, setCargando] = useState(true);
   const [usuarioNombre, setUsuarioNombre] = useState('Cliente'); 
-  const [clienteId, setClienteId] = useState(null);
-  const [mostrarFormMascota, setMostrarFormMascota] = useState(false);
-  const [nuevaMascota, setNuevaMascota] = useState({
-    nombre: '', especie: '', raza: '', sexo: '', color: ''
-  });
-  
+  const [cargando, setCargando] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,51 +15,57 @@ function PortalCliente() {
   const obtenerSesion = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setCargando(false);
-        return;
-      }
+      if (!session) return navigate('/login');
 
-      // Consulta a la base de datos con los nombres de columna correctos
       const { data: cliente, error } = await supabase
         .from('clientes')
-        .select('id_cliente, nombre') 
+        .select('nombre') 
         .eq('correo_electronico', session.user.email)
         .single();
 
       if (error) throw error;
-
       setUsuarioNombre(cliente.nombre);
-      setClienteId(cliente.id_cliente);
-      
     } catch (error) {
-      console.error("Error al obtener sesión:", error.message);
+      console.error("Error:", error.message);
     } finally {
-      setCargando(false); // Asegura que el estado de carga termine
+      setCargando(false);
     }
   };
 
-  const handleCerrarSesion = async () => {
-    await supabase.auth.signOut();
-    navigate('/');
-  };
+  if (cargando) return <div className="cargando">Cargando tu espacio... 🐾</div>;
 
   return (
-    <div className="portal-wrapper">
-      <div className="portal-header">
-        {/* Aquí se muestra el nombre real cargado desde Supabase */}
-        <h2>Bienvenido/a, {usuarioNombre} 🐾</h2> 
-        <p>Aquí puedes gestionar la salud de tus consentidos.</p>
-        <Link to="/agendar-cita">
-          <button className="btn-nueva-cita">+ Agendar Nueva Cita</button>
-        </Link>
-      </div>
+    <div className="portal-container">
+      <header className="portal-header">
+        <h1>¡Hola, {usuarioNombre}! 🐾</h1>
+        <p>¿Qué haremos hoy por tus mejores amigos?</p>
+      </header>
 
-      {/* Aquí iría el resto de tu contenido de mascotas/citas */}
+      <section className="dashboard-grid">
+        <div className="card">
+          <h3>Mis Mascotas</h3>
+          <p>Gestiona el historial y datos de tus peluditos.</p>
+          <button className="btn-secundario">Ver Mascotas</button>
+        </div>
 
-      <div className="portal-footer">
-        <button onClick={handleCerrarSesion} className="btn-link">← Cerrar Sesión</button>
-      </div>
+        <div className="card">
+          <h3>Mis Citas</h3>
+          <p>Revisa tus próximas visitas al veterinario.</p>
+          <button className="btn-secundario">Ver Citas</button>
+        </div>
+
+        <div className="card highlight">
+          <h3>Agendar Nueva Cita</h3>
+          <p>Reserva un espacio para revisión o vacuna.</p>
+          <Link to="/agendar-cita"><button className="btn-primario">+ Agendar</button></Link>
+        </div>
+      </section>
+
+      <footer className="portal-footer">
+        <button onClick={() => supabase.auth.signOut().then(() => navigate('/'))} className="btn-text">
+          ← Cerrar Sesión
+        </button>
+      </footer>
     </div>
   );
 }
