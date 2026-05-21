@@ -18,13 +18,13 @@ function PortalCliente() {
       if (!session) return navigate('/login');
 
       const { data: cliente, error } = await supabase
-        .from('cliente')
-        .select('nombre')
+        .from('clientes')
+        .select('nombre_completo')
         .eq('correo_electronico', session.user.email)
         .single();
 
       if (error) throw error;
-      if (cliente) setUsuarioNombre(cliente.nombre);
+      if (cliente) setUsuarioNombre(cliente.nombre_completo);
     } catch (error) {
       console.error("Error:", error.message);
     } finally {
@@ -42,7 +42,6 @@ function PortalCliente() {
       </header>
 
       <section className="dashboard-grid">
-        {/* --- TARJETA MIS MASCOTAS (ARREGLADA) --- */}
         <div className="card">
           <h3>Mis Mascotas</h3>
           <p>Gestiona el historial y datos de tus peluditos.</p>
@@ -51,14 +50,12 @@ function PortalCliente() {
           </Link>
         </div>
 
-        {/* --- TARJETA MIS CITAS --- */}
         <div className="card">
           <h3>Mis Citas</h3>
           <p>Revisa tus próximas visitas al veterinario.</p>
           <button className="btn-secundario">Ver Citas</button>
         </div>
 
-        {/* --- TARJETA AGENDAR --- */}
         <div className="card">
           <h3>Agendar Nueva Cita</h3>
           <p>Reserva un espacio para revisión o vacuna.</p>
