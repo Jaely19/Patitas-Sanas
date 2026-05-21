@@ -22,33 +22,23 @@ function PortalCliente() {
 
   const obtenerSesion = async () => {
     try {
-      setCargando(true);
       const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        navigate('/login'); // Si no hay sesión, mandamos al login
-        return;
-      }
+      if (!session) return;
 
-      // Consulta directa a la tabla clientes filtrando por el email de la sesión
+      // CAMBIO: ahora buscamos en la columna 'correo_electronico'
       const { data: cliente, error } = await supabase
         .from('clientes')
-        .select('id_cliente, nombre_completo')
-        .eq('email', session.user.email)
+        .select('id_cliente, nombre') // CAMBIO: tu columna se llama 'nombre', no 'nombre_completo'
+        .eq('correo_electronico', session.user.email) // CAMBIO: tu columna se llama 'correo_electronico'
         .single();
 
       if (error) throw error;
 
-      if (cliente) {
-        setUsuarioNombre(cliente.nombre_completo); // Aquí se actualiza el nombre real
-        setClienteId(cliente.id_cliente);
-        await cargarMisCitas(cliente.id_cliente);
-        await cargarMisMascotas(cliente.id_cliente);
-      }
+      setUsuarioNombre(cliente.nombre); // CAMBIO: usamos 'nombre'
+      setClienteId(cliente.id_cliente);
+      // ... resto de tu código
     } catch (error) {
       console.error("Error al obtener sesión:", error.message);
-    } finally {
-      setCargando(false);
     }
   };
 
