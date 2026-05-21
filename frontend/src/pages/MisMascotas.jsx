@@ -3,7 +3,7 @@ import { supabase } from '../supabase';
 
 function MisMascotas() {
   const [mascotas, setMascotas] = useState([]);
-  const [nombre, setNombre] = useState(''); // Estado para el input de nombre
+  const [nombre, setNombre] = useState('');
 
   useEffect(() => {
     cargarMascotas();
@@ -33,31 +33,36 @@ function MisMascotas() {
       alert("Error al registrar: " + error.message);
     } else {
       alert("Mascota registrada");
-      setNombre(''); // Limpiar el input
-      cargarMascotas(); // Recargar la lista
+      setNombre('');
+      cargarMascotas();
     }
   };
 
   return (
-    <div>
-      <h1>Mis Mascotas</h1>
+    <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto', color: '#333' }}>
+      <h1 style={{ color: '#012b81' }}>Mis Mascotas</h1>
       
-      {/* FORMULARIO DE ALTA */}
-      <form onSubmit={registrarMascota}>
+      {/* FORMULARIO */}
+      <form onSubmit={registrarMascota} style={{ display: 'flex', gap: '10px', marginBottom: '30px' }}>
         <input 
           type="text" 
           placeholder="Nombre de la mascota" 
           value={nombre}
           onChange={(e) => setNombre(e.target.value)} 
           required
+          style={{ flex: 1, padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
         />
-        <button type="submit">Guardar Mascota</button>
+        <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#012b81', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
+          Guardar
+        </button>
       </form>
 
-      {/* LISTA DE MASCOTAS */}
-      <ul>
+      {/* LISTA */}
+      <ul style={{ listStyle: 'none', padding: 0 }}>
         {mascotas.map(m => (
-          <li key={m.id}>{m.nombre}</li>
+          <li key={m.id} style={{ padding: '15px', backgroundColor: '#f4f4f4', marginBottom: '10px', borderRadius: '5px', borderLeft: '5px solid #012b81' }}>
+            {m.nombre}
+          </li>
         ))}
       </ul>
     </div>
