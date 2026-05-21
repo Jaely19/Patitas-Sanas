@@ -1,95 +1,95 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '../supabase'; // Conexión a la nube
+import { supabase } from '../supabase';
 import './AgendarCita.css';
 
 function AgendarCita() {
   const navigate = useNavigate();
-  
-  // 1. Fechas
+
   const fechaActual = new Date();
-  const mesActual = fechaActual.getMonth(); 
+  const mesActual = fechaActual.getMonth();
   const anioActual = fechaActual.getFullYear();
   const hoy = fechaActual.getDate();
-  
-  const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
-  // Estados de selección
   const [diaSeleccionado, setDiaSeleccionado] = useState(hoy);
   const [horaSeleccionada, setHoraSeleccionada] = useState('06:00 PM');
-  
-  // Estados del formulario
-  const [nombreDueño, setNombreDueño] = useState('');
-  const [telefono, setTelefono] = useState('');
-  const [direccion, setDirección] = useState('');
-  const [nombreMascota, setNombreMascota] = useState('');
-  const [especie, setEspecie] = useState('');
   const [servicio, setServicio] = useState('Consulta General');
-  
-  // Estado de carga
   const [guardando, setGuardando] = useState(false);
 
-  // FUNCIÓN MÁGICA: GUARDAR EN LA BASE DE DATOS
+  // Datos del cliente logueado
+  const [clienteId, setClienteId] = useState(null);
+  const [misMascotas, setMisMascotas] = useState([]);
+  const [mascotaSeleccionada, setMascotaSeleccionada] = useState('');
+
+  useEffect(() => {
+    obtenerClienteLogueado();
+  }, []);
+
+  const obtenerClienteLogueado = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data: cliente, error } = await supabase
+        .from('clientes')
+        .select('id_cliente')
+        .eq('email', session.user.email)
+        .single();
+
+      if (error) throw error;
+
+      setClienteId(cliente.id_cliente);
+
+      // Cargar solo las mascotas de este cliente
+      const { data: mascotas, error: errorMascotas } = await supabase
+        .from('mascotas')
+        .select('id_mascota, nombre, especie')
+        .eq('id_cliente', cliente.id_cliente);
+
+      if (errorMascotas) throw errorMascotas;
+      setMisMascotas(mascotas || []);
+      if (mascotas && mascotas.length > 0) {
+        setMascotaSeleccionada(mascotas[0].id_mascota);
+      }
+    } catch (error) {
+      console.error("Error al obtener cliente:", error.message);
+    }
+  };
+
   const guardarRegistroCita = async (e) => {
     e.preventDefault();
+    if (!mascotaSeleccionada) {
+      alert('Por favor selecciona una mascota.');
+      return;
+    }
     setGuardando(true);
 
     try {
-      // PASO 1: Guardar al Dueño
-      const { data: clienteInsertado, error: errorCliente } = await supabase
-        .from('clientes')
-        .insert([{ 
-          nombre_completo: nombreDueño, 
-          telefono: telefono, 
-          direccion: direccion 
-        }])
-        .select()
-        .single();
-
-      if (errorCliente) throw errorCliente;
-
-      // PASO 2: Guardar a la Mascota amarrada al Dueño
-      const { data: mascotaInsertada, error: errorMascota } = await supabase
-        .from('mascotas')
-        .insert([{ 
-          nombre: nombreMascota, 
-          especie: especie, 
-          id_cliente: clienteInsertado.id_cliente 
-        }])
-        .select()
-        .single();
-
-      if (errorMascota) throw errorMascota;
-
-      // Convertir formato de hora (Ej: 04:00 PM a 16:00:00) para PostgreSQL
       let [time, modifier] = horaSeleccionada.split(' ');
       let [hours, minutes] = time.split(':');
       if (hours === '12') hours = '00';
       if (modifier === 'PM') hours = parseInt(hours, 10) + 12;
-      
+
       const mesFormateado = String(mesActual + 1).padStart(2, '0');
       const diaFormateado = String(diaSeleccionado).padStart(2, '0');
       const timestampCita = `${anioActual}-${mesFormateado}-${diaFormateado}T${hours}:${minutes}:00-06:00`;
 
-      // PASO 3: Guardar la Cita amarrada a la Mascota y al Doctor #1
-      const { error: errorCita } = await supabase
+      const { error } = await supabase
         .from('citas')
         .insert([{
           fecha_hora: timestampCita,
           motivo: servicio,
-          id_mascota: mascotaInsertada.id_mascota,
+          id_mascota: mascotaSeleccionada,
           id_veterinario: 1
         }]);
 
-      if (errorCita) throw errorCita;
+      if (error) throw error;
 
-      // ÉXITO: Mensaje nuevo y envío al Portal del Cliente
-      alert(`¡Cita Agendada y Guardada en la Nube!\n\nPaciente: ${nombreMascota}\nFecha: ${diaSeleccionado} de ${meses[mesActual]} a las ${horaSeleccionada}`);
-      navigate('/portal-cliente'); 
-
+      alert(`¡Cita agendada con éxito!\nFecha: ${diaSeleccionado} de ${meses[mesActual]} a las ${horaSeleccionada}`);
+      navigate('/portal-cliente');
     } catch (err) {
-      alert('Hubo un error al guardar la reservación. Revisa la consola.');
-      console.error('Detalle del error:', err.message);
+      alert('Error al guardar la cita: ' + err.message);
     } finally {
       setGuardando(false);
     }
@@ -104,22 +104,16 @@ function AgendarCita() {
     for (let i = 0; i < espaciosVacios; i++) {
       dias.push(<div key={`empty-${i}`} className="day empty"></div>);
     }
-    
     for (let i = 1; i <= diasTotalesDelMes; i++) {
       const fechaIteracion = new Date(anioActual, mesActual, i);
       const diaSemana = fechaIteracion.getDay();
       const esFinDeSemana = diaSemana === 0 || diaSemana === 6;
-      const esPasado = i < hoy; 
-      
+      const esPasado = i < hoy;
       const isDisabled = esFinDeSemana || esPasado;
       const isSelected = diaSeleccionado === i;
-      
       dias.push(
-        <div 
-          key={i} 
-          className={`day ${isDisabled ? 'disabled' : ''} ${isSelected ? 'selected' : ''}`}
-          onClick={() => !isDisabled && setDiaSeleccionado(i)}
-        >
+        <div key={i} className={`day ${isDisabled ? 'disabled' : ''} ${isSelected ? 'selected' : ''}`}
+          onClick={() => !isDisabled && setDiaSeleccionado(i)}>
           {i}
         </div>
       );
@@ -135,7 +129,7 @@ function AgendarCita() {
         <Link to="/portal-cliente" style={{ color: '#012b81', textDecoration: 'none', fontWeight: 'bold', marginBottom: '20px', display: 'inline-block' }}>
           ← Cancelar y volver al Portal
         </Link>
-        
+
         <div className="appointment-card">
           <div className="header-citas">
             <h1>Agenda tu Consulta Especializada</h1>
@@ -164,11 +158,8 @@ function AgendarCita() {
               <h3>2. Horarios Disponibles</h3>
               <div className="time-slots">
                 {horarios.map(hora => (
-                  <div 
-                    key={hora}
-                    className={`slot ${horaSeleccionada === hora ? 'selected' : ''}`}
-                    onClick={() => setHoraSeleccionada(hora)}
-                  >
+                  <div key={hora} className={`slot ${horaSeleccionada === hora ? 'selected' : ''}`}
+                    onClick={() => setHoraSeleccionada(hora)}>
                     {hora}
                   </div>
                 ))}
@@ -177,34 +168,25 @@ function AgendarCita() {
           </div>
 
           <div className="form-section">
-            <h3>3. Información de Registro</h3>
+            <h3>3. Información de la Cita</h3>
             <form className="form-grid" onSubmit={guardarRegistroCita}>
+
+              {/* Selector de mascota — solo las del cliente logueado */}
               <div className="input-group">
-                <label>Nombre del Dueño</label>
-                <input type="text" placeholder="Ej. Juan Pérez" value={nombreDueño} onChange={e => setNombreDueño(e.target.value)} required />
+                <label>Selecciona tu Mascota</label>
+                {misMascotas.length === 0 ? (
+                  <p style={{ color: '#e74c3c' }}>No tienes mascotas registradas. <Link to="/portal-cliente">Agrégalas en tu portal.</Link></p>
+                ) : (
+                  <select value={mascotaSeleccionada} onChange={e => setMascotaSeleccionada(e.target.value)} required>
+                    {misMascotas.map(m => (
+                      <option key={m.id_mascota} value={m.id_mascota}>
+                        {m.nombre} ({m.especie})
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
-              <div className="input-group">
-                <label>Teléfono de Contacto</label>
-                <input type="tel" placeholder="55 0000 0000" value={telefono} onChange={e => setTelefono(e.target.value)} required />
-              </div>
-              <div className="input-group">
-                <label>Dirección</label>
-                <input type="text" placeholder="Calle, Número, Colonia" value={direccion} onChange={e => setDirección(e.target.value)} required />
-              </div>
-              <div className="input-group">
-                <label>Nombre de la Mascota</label>
-                <input type="text" placeholder="Ej. Toby" value={nombreMascota} onChange={e => setNombreMascota(e.target.value)} required />
-              </div>
-              <div className="input-group">
-                <label>Especie de la Mascota</label>
-                <select value={especie} onChange={e => setEspecie(e.target.value)} required>
-                  <option value="" disabled>Selecciona una opción...</option>
-                  <option value="Perro">Perro (Canino)</option>
-                  <option value="Gato">Gato (Felino)</option>
-                  <option value="Ave">Ave</option>
-                  <option value="Roedor">Roedor</option>
-                </select>
-              </div>
+
               <div className="input-group">
                 <label>Tipo de Servicio</label>
                 <select value={servicio} onChange={e => setServicio(e.target.value)}>
@@ -214,8 +196,8 @@ function AgendarCita() {
                   <option value="Medicina Interna">Medicina Interna</option>
                 </select>
               </div>
-              
-              <button type="submit" className="btn-confirm" disabled={guardando}>
+
+              <button type="submit" className="btn-confirm" disabled={guardando || misMascotas.length === 0}>
                 {guardando ? 'Guardando en la Nube...' : 'Confirmar Reservación'}
               </button>
             </form>
