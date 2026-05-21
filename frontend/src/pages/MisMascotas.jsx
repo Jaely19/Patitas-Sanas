@@ -16,7 +16,7 @@ function MisMascotas() {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from('mascota') // Corregido a singular
+        .from('mascota')
         .select('*')
         .eq('user_id', user.id);
 
@@ -34,7 +34,7 @@ function MisMascotas() {
       if (!user) throw new Error("Debes iniciar sesión");
 
       const { error } = await supabase
-        .from('mascota') // Corregido a singular
+        .from('mascota')
         .insert([{ nombre: nombre, user_id: user.id }]);
 
       if (error) throw error;
@@ -72,7 +72,8 @@ function MisMascotas() {
       <h3 style={{ marginTop: '30px', color: '#333' }}>Mis peluditos registrados:</h3>
       <ul style={{ listStyle: 'none', padding: 0 }}>
         {mascotas.map(m => (
-          <li key={m.id} className="card" style={{ margin: '10px auto', maxWidth: '300px' }}>
+          // Cambiado de m.id a m.id_mascota para coincidir con tu tabla
+          <li key={m.id_mascota} className="card" style={{ margin: '10px auto', maxWidth: '300px' }}>
             {m.nombre}
           </li>
         ))}
