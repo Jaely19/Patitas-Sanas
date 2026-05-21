@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
-import './PortalCliente.css'; // Asegúrate de tener este CSS importado
+import './PortalCliente.css';
 
 function MisMascotas() {
   const [mascotas, setMascotas] = useState([]);
@@ -13,20 +13,17 @@ function MisMascotas() {
   const cargarMascotas = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.warn("No hay usuario autenticado.");
-        return;
-      }
+      if (!user) return;
 
       const { data, error } = await supabase
-        .from('mascotas')
+        .from('mascota') // Corregido a singular
         .select('*')
         .eq('user_id', user.id);
 
       if (error) throw error;
       if (data) setMascotas(data);
     } catch (err) {
-      console.error("Error al cargar mascotas:", err.message);
+      console.error("Error al cargar:", err.message);
     }
   };
 
@@ -37,12 +34,12 @@ function MisMascotas() {
       if (!user) throw new Error("Debes iniciar sesión");
 
       const { error } = await supabase
-        .from('mascotas')
+        .from('mascota') // Corregido a singular
         .insert([{ nombre: nombre, user_id: user.id }]);
 
       if (error) throw error;
 
-      alert("¡Mascota registrada con éxito!");
+      alert("¡Mascota registrada!");
       setNombre('');
       cargarMascotas();
     } catch (err) {
