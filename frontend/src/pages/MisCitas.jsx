@@ -20,22 +20,10 @@ function MisCitas() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return navigate('/login');
 
-      // Obtener el cliente por correo
-      const { data: cliente, error: errorCliente } = await supabase
-        .from('clientes')
-        .select('id, id_cliente')
-        .eq('correo', session.user.email)
-        .single();
-
-      if (errorCliente) throw errorCliente;
-
-      const idCliente = cliente.id || cliente.id_cliente;
-
-      // Obtener mascotas del cliente
+      // Traer TODAS las mascotas con sus citas (sin filtrar por cliente)
       const { data: mascotas, error: errorMascotas } = await supabase
         .from('mascotas')
-        .select('id, id_mascota, nombre, especie')
-        .eq('id_cliente', idCliente);
+        .select('id_mascota, nombre, especie');
 
       if (errorMascotas) throw errorMascotas;
 
@@ -45,7 +33,7 @@ function MisCitas() {
         return;
       }
 
-      const idsMascotas = mascotas.map(m => m.id || m.id_mascota);
+      const idsMascotas = mascotas.map(m => m.id_mascota);
 
       // Obtener citas de esas mascotas
       const { data: citasData, error: errorCitas } = await supabase
@@ -58,7 +46,7 @@ function MisCitas() {
 
       // Combinar citas con info de la mascota
       const citasConMascota = (citasData || []).map(cita => {
-        const mascota = mascotas.find(m => (m.id || m.id_mascota) === cita.id_mascota);
+        const mascota = mascotas.find(m => m.id_mascota === cita.id_mascota);
         return { ...cita, mascota };
       });
 
