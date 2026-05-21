@@ -1,12 +1,54 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
-import './PortalCliente.css'; // Asegúrate de que importe el CSS
+import './PortalCliente.css'; // Asegúrate de tener este CSS importado
 
 function MisMascotas() {
   const [mascotas, setMascotas] = useState([]);
   const [nombre, setNombre] = useState('');
 
-  // ... (tu lógica de useEffect, cargarMascotas y registrarMascota se queda IGUAL)
+  useEffect(() => {
+    cargarMascotas();
+  }, []);
+
+  const cargarMascotas = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.warn("No hay usuario autenticado.");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('mascotas')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      if (data) setMascotas(data);
+    } catch (err) {
+      console.error("Error al cargar mascotas:", err.message);
+    }
+  };
+
+  const registrarMascota = async (e) => {
+    e.preventDefault();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Debes iniciar sesión");
+
+      const { error } = await supabase
+        .from('mascotas')
+        .insert([{ nombre: nombre, user_id: user.id }]);
+
+      if (error) throw error;
+
+      alert("¡Mascota registrada con éxito!");
+      setNombre('');
+      cargarMascotas();
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
+  };
 
   return (
     <div className="portal-container">
@@ -14,7 +56,6 @@ function MisMascotas() {
         <h1>Mis Mascotas</h1>
       </header>
 
-      {/* FORMULARIO dentro de una card */}
       <div className="dashboard-grid">
         <div className="card">
           <form onSubmit={registrarMascota}>
@@ -31,8 +72,7 @@ function MisMascotas() {
         </div>
       </div>
 
-      {/* LISTA */}
-      <h3 style={{ marginTop: '30px' }}>Mis peluditos registrados:</h3>
+      <h3 style={{ marginTop: '30px', color: '#333' }}>Mis peluditos registrados:</h3>
       <ul style={{ listStyle: 'none', padding: 0 }}>
         {mascotas.map(m => (
           <li key={m.id} className="card" style={{ margin: '10px auto', maxWidth: '300px' }}>
