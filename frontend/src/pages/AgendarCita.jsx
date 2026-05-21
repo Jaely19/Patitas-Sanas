@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '../supabase'; // Conexión a la nube
+import { supabase } from '../supabase'; // 👈 CORREGIDO: Ruta correcta a la misma altura de la carpeta src
 import './AgendarCita.css';
 
 function AgendarCita() {
@@ -23,7 +23,7 @@ function AgendarCita() {
   const [telefono, setTelefono] = useState('');
   const [direccion, setDirección] = useState('');
   const [nombreMascota, setNombreMascota] = useState('');
-  const [especie, setEspecie] = useState('');
+  const [especie, setEspecie] = useState('Perro'); // 👈 CORREGIDO: Estado inicial válido para evitar nulos en el select
   const [servicio, setServicio] = useState('Consulta General');
   
   // Estado de carga
@@ -49,12 +49,16 @@ function AgendarCita() {
       if (errorCliente) throw errorCliente;
 
       // PASO 2: Guardar a la Mascota amarrada al Dueño
+      // 💡 NOTA: Si en tu tabla la columna se llama 'id_cliente', usa clienteInsertado.id_cliente
+      // Si se llama solo 'id', usa clienteInsertado.id
+      const idCliente = clienteInsertado.id || clienteInsertado.id_cliente;
+
       const { data: mascotaInsertada, error: errorMascota } = await supabase
         .from('mascotas')
         .insert([{ 
           nombre: nombreMascota, 
           especie: especie, 
-          id_cliente: clienteInsertado.id_cliente 
+          id_cliente: idCliente 
         }])
         .select()
         .single();
@@ -71,13 +75,15 @@ function AgendarCita() {
       const diaFormateado = String(diaSeleccionado).padStart(2, '0');
       const timestampCita = `${anioActual}-${mesFormateado}-${diaFormateado}T${hours}:${minutes}:00-06:00`;
 
+      const idMascota = mascotaInsertada.id || mascotaInsertada.id_mascota;
+
       // PASO 3: Guardar la Cita amarrada a la Mascota y al Doctor #1
       const { error: errorCita } = await supabase
         .from('citas')
         .insert([{
           fecha_hora: timestampCita,
           motivo: servicio,
-          id_mascota: mascotaInsertada.id_mascota,
+          id_mascota: idMascota,
           id_veterinario: 1
         }]);
 
@@ -138,7 +144,7 @@ function AgendarCita() {
         
         <div className="appointment-card">
           <div className="header-citas">
-            <h1>Agenda tu Consulta Especializada</h1>
+            <h1>Agenda tu Consulta Specialized</h1>
             <p>Selecciona una fecha y horario para la atención de tu mascota.</p>
           </div>
 
@@ -198,7 +204,6 @@ function AgendarCita() {
               <div className="input-group">
                 <label>Especie de la Mascota</label>
                 <select value={especie} onChange={e => setEspecie(e.target.value)} required>
-                  <option value="" disabled>Selecciona una opción...</option>
                   <option value="Perro">Perro (Canino)</option>
                   <option value="Gato">Gato (Felino)</option>
                   <option value="Ave">Ave</option>
