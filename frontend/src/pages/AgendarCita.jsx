@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '../supabase'; // 👈 CORREGIDO: Ruta correcta a la misma altura de la carpeta src
+import { supabase } from '../supabase';
 import './AgendarCita.css';
 
 function AgendarCita() {
   const navigate = useNavigate();
   
-  // 1. Fechas
   const fechaActual = new Date();
   const mesActual = fechaActual.getMonth(); 
   const anioActual = fechaActual.getFullYear();
@@ -14,45 +13,42 @@ function AgendarCita() {
   
   const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
-  // Estados de selección
   const [diaSeleccionado, setDiaSeleccionado] = useState(hoy);
   const [horaSeleccionada, setHoraSeleccionada] = useState('06:00 PM');
-  
-  // Estados del formulario
   const [nombreDueño, setNombreDueño] = useState('');
   const [telefono, setTelefono] = useState('');
   const [direccion, setDirección] = useState('');
   const [nombreMascota, setNombreMascota] = useState('');
-  const [especie, setEspecie] = useState('Perro'); // 👈 CORREGIDO: Estado inicial válido para evitar nulos en el select
+  const [especie, setEspecie] = useState('Perro');
   const [servicio, setServicio] = useState('Consulta General');
-  
-  // Estado de carga
   const [guardando, setGuardando] = useState(false);
 
-  // FUNCIÓN MÁGICA: GUARDAR EN LA BASE DE DATOS
   const guardarRegistroCita = async (e) => {
     e.preventDefault();
     setGuardando(true);
 
     try {
-      // PASO 1: Guardar al Dueño
+      // Obtener correo del usuario logueado
+      const { data: { session } } = await supabase.auth.getSession();
+      const correoUsuario = session?.user?.email || null;
+
+      // PASO 1: Guardar al Dueño CON el correo
       const { data: clienteInsertado, error: errorCliente } = await supabase
         .from('clientes')
         .insert([{ 
           nombre_completo: nombreDueño, 
           telefono: telefono, 
-          direccion: direccion 
+          direccion: direccion,
+          correo: correoUsuario  // 👈 guardamos el correo
         }])
         .select()
         .single();
 
       if (errorCliente) throw errorCliente;
 
-      // PASO 2: Guardar a la Mascota amarrada al Dueño
-      // 💡 NOTA: Si en tu tabla la columna se llama 'id_cliente', usa clienteInsertado.id_cliente
-      // Si se llama solo 'id', usa clienteInsertado.id
       const idCliente = clienteInsertado.id || clienteInsertado.id_cliente;
 
+      // PASO 2: Guardar Mascota
       const { data: mascotaInsertada, error: errorMascota } = await supabase
         .from('mascotas')
         .insert([{ 
@@ -65,7 +61,7 @@ function AgendarCita() {
 
       if (errorMascota) throw errorMascota;
 
-      // Convertir formato de hora (Ej: 04:00 PM a 16:00:00) para PostgreSQL
+      // Convertir hora
       let [time, modifier] = horaSeleccionada.split(' ');
       let [hours, minutes] = time.split(':');
       if (hours === '12') hours = '00';
@@ -77,7 +73,7 @@ function AgendarCita() {
 
       const idMascota = mascotaInsertada.id || mascotaInsertada.id_mascota;
 
-      // PASO 3: Guardar la Cita amarrada a la Mascota y al Doctor #1
+      // PASO 3: Guardar Cita
       const { error: errorCita } = await supabase
         .from('citas')
         .insert([{
@@ -89,9 +85,8 @@ function AgendarCita() {
 
       if (errorCita) throw errorCita;
 
-      // ÉXITO: Mensaje nuevo y envío al Portal del Cliente
       alert(`¡Cita Agendada y Guardada en la Nube!\n\nPaciente: ${nombreMascota}\nFecha: ${diaSeleccionado} de ${meses[mesActual]} a las ${horaSeleccionada}`);
-      navigate('/portal-cliente'); 
+      navigate('/mis-citas'); // 👈 redirige a Mis Citas
 
     } catch (err) {
       alert('Hubo un error al guardar la reservación. Revisa la consola.');
@@ -116,7 +111,6 @@ function AgendarCita() {
       const diaSemana = fechaIteracion.getDay();
       const esFinDeSemana = diaSemana === 0 || diaSemana === 6;
       const esPasado = i < hoy; 
-      
       const isDisabled = esFinDeSemana || esPasado;
       const isSelected = diaSeleccionado === i;
       
