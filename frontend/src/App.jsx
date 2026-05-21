@@ -3,12 +3,13 @@ import Inicio from './pages/Inicio';
 import Login from './Login';
 import Clientes from './pages/Clientes';
 import Mascotas from './pages/Mascotas';
-import MisMascotas from './pages/MisMascotas'; // IMPORTACIÓN AGREGADA
+import MisMascotas from './pages/MisMascotas';
 import Citas from './pages/Citas';
 import Recepcion from './pages/Recepcion'; 
 import Medico from './pages/Medico'; 
 import AgendarCita from './pages/AgendarCita'; 
 import PortalCliente from './pages/PortalCliente';
+import MisCitas from './pages/MisCitas'; // 👈 AGREGADO
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         {/* === RUTAS DE CLIENTES === */}
         <Route path="/agendar-cita" element={<AgendarCita />} />
         <Route path="/mis-mascotas" element={<MisMascotas />} />
+        <Route path="/mis-citas" element={<MisCitas />} /> {/* 👈 AGREGADO */}
 
         {/* === RUTA DE PANEL MÉDICO === */}
         <Route path="/panel-vet" element={<Medico />} />
