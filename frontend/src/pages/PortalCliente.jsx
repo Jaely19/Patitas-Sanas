@@ -13,20 +13,29 @@ function PortalCliente() {
   }, []);
 
   const obtenerSesion = async () => {
+    setCargando(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return navigate('/login');
+      
+      if (!session) {
+        navigate('/login');
+        return;
+      }
 
+      // Consultamos el nombre del usuario basado en su email
       const { data: cliente, error } = await supabase
         .from('clientes')
         .select('nombre')
         .eq('correo_electronico', session.user.email)
-        .single();
+        .maybeSingle(); // Usamos maybeSingle para evitar errores si no encuentra la fila
 
-      if (error) throw error;
-      if (cliente) setUsuarioNombre(cliente.nombre);
-    } catch (error) {
-      console.error("Error:", error.message);
+      if (error) {
+        console.error("Error al obtener perfil:", error.message);
+      } else if (cliente) {
+        setUsuarioNombre(cliente.nombre);
+      }
+    } catch (err) {
+      console.error("Error inesperado:", err);
     } finally {
       setCargando(false);
     }
@@ -35,7 +44,7 @@ function PortalCliente() {
   return (
     <div className="portal-container">
       <header className="portal-header">
-        <h1>¡Hola, {usuarioNombre}! 🐾</h1>
+        <h1>¡Hola, {cargando ? "cargando..." : usuarioNombre}! 🐾</h1>
         <p>¿Qué haremos hoy por tus mejores amigos?</p>
       </header>
 
@@ -62,7 +71,13 @@ function PortalCliente() {
       </section>
 
       <footer className="portal-footer">
-        <button onClick={() => supabase.auth.signOut().then(() => navigate('/'))} className="btn-text">
+        <button 
+          onClick={async () => {
+            await supabase.auth.signOut();
+            navigate('/');
+          }} 
+          className="btn-text"
+        >
           ← Cerrar Sesión
         </button>
       </footer>
