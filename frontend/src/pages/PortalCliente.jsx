@@ -53,7 +53,10 @@ function PortalCliente() {
         <div className="card">
           <h3>Mis Citas</h3>
           <p>Revisa tus próximas visitas al veterinario.</p>
-          <button className="btn-secundario">Ver Citas</button>
+          {/* 👈 CONECTADO: ahora lleva a /mis-citas */}
+          <Link to="/mis-citas">
+            <button className="btn-secundario">Ver Citas</button>
+          </Link>
         </div>
 
         <div className="card">
