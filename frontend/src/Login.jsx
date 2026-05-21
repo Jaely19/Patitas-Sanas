@@ -34,19 +34,26 @@ function Login() {
         }
 
         // 1. Crear el usuario en Supabase Auth
-        const { data, error: errorAuth } = await supabase.auth.signUp({ email, password });
+        const { data: authData, error: errorAuth } = await supabase.auth.signUp({ email, password });
         if (errorAuth) throw errorAuth;
 
-        // 2. Insertar en la tabla clientes con el email
-        const { error: errorCliente } = await supabase
-          .from('clientes')
-          .insert([{
-            nombre_completo: nombreCompleto,
-            telefono: telefono || null,
-            email: email,
-          }]);
+        // Validamos que realmente se haya generado una sesión o un usuario antes de proceder
+        if (authData?.user) {
+          // 2. Insertar en la tabla clientes con el email
+          const { error: errorCliente } = await supabase
+            .from('clientes')
+            .insert([{
+              nombre_completo: nombreCompleto,
+              telefono: telefono || null,
+              email: email,
+            }]);
 
-        if (errorCliente) throw errorCliente;
+          // Si falla la inserción en la tabla de tu base de datos, lanzamos un error para detener el flujo
+          if (errorCliente) {
+            console.error("Error al registrar en tabla clientes:", errorCliente.message);
+            throw new Error("Se creó el usuario de acceso, pero hubo un problema al guardar tus datos de cliente. Por favor, reporta este problema.");
+          }
+        }
 
         alert('¡Cuenta creada con éxito! Ahora agenda tu primera cita.');
         navigate('/agendar-cita');
@@ -64,10 +71,10 @@ function Login() {
         <h2>Portal de Acceso</h2>
 
         <div className="tabs">
-          <button className={isLogin ? 'active' : ''} onClick={() => setIsLogin(true)}>
+          <button type="button" className={isLogin ? 'active' : ''} onClick={() => setIsLogin(true)}>
             Iniciar Sesión
           </button>
-          <button className={!isLogin ? 'active' : ''} onClick={() => setIsLogin(false)}>
+          <button type="button" className={!isLogin ? 'active' : ''} onClick={() => setIsLogin(false)}>
             Registrarse
           </button>
         </div>
