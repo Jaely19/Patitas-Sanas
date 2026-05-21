@@ -32,21 +32,38 @@ function AgendarCita() {
       const { data: { session } } = await supabase.auth.getSession();
       const correoUsuario = session?.user?.email || null;
 
-      // PASO 1: Guardar al Dueño CON el correo
-      const { data: clienteInsertado, error: errorCliente } = await supabase
-        .from('clientes')
-        .insert([{ 
-          nombre_completo: nombreDueño, 
-          telefono: telefono, 
-          direccion: direccion,
-          correo: correoUsuario  // 👈 guardamos el correo
-        }])
-        .select()
-        .single();
+      // PASO 1: Buscar si ya existe un cliente con ese correo
+      let idCliente = null;
 
-      if (errorCliente) throw errorCliente;
+      if (correoUsuario) {
+        const { data: clienteExistente } = await supabase
+          .from('clientes')
+          .select('id_cliente')
+          .eq('correo', correoUsuario)
+          .single();
 
-      const idCliente = clienteInsertado.id || clienteInsertado.id_cliente;
+        if (clienteExistente) {
+          // Ya existe, usar ese
+          idCliente = clienteExistente.id_cliente;
+        }
+      }
+
+      // Si no existe, crear uno nuevo
+      if (!idCliente) {
+        const { data: clienteInsertado, error: errorCliente } = await supabase
+          .from('clientes')
+          .insert([{ 
+            nombre_completo: nombreDueño, 
+            telefono: telefono, 
+            direccion: direccion,
+            correo: correoUsuario
+          }])
+          .select()
+          .single();
+
+        if (errorCliente) throw errorCliente;
+        idCliente = clienteInsertado.id_cliente;
+      }
 
       // PASO 2: Guardar Mascota
       const { data: mascotaInsertada, error: errorMascota } = await supabase
@@ -71,7 +88,7 @@ function AgendarCita() {
       const diaFormateado = String(diaSeleccionado).padStart(2, '0');
       const timestampCita = `${anioActual}-${mesFormateado}-${diaFormateado}T${hours}:${minutes}:00-06:00`;
 
-      const idMascota = mascotaInsertada.id || mascotaInsertada.id_mascota;
+      const idMascota = mascotaInsertada.id_mascota || mascotaInsertada.id;
 
       // PASO 3: Guardar Cita
       const { error: errorCita } = await supabase
@@ -85,8 +102,8 @@ function AgendarCita() {
 
       if (errorCita) throw errorCita;
 
-      alert(`¡Cita Agendada y Guardada en la Nube!\n\nPaciente: ${nombreMascota}\nFecha: ${diaSeleccionado} de ${meses[mesActual]} a las ${horaSeleccionada}`);
-      navigate('/mis-citas'); // 👈 redirige a Mis Citas
+      alert(`¡Cita Agendada!\n\nPaciente: ${nombreMascota}\nFecha: ${diaSeleccionado} de ${meses[mesActual]} a las ${horaSeleccionada}`);
+      navigate('/mis-citas');
 
     } catch (err) {
       alert('Hubo un error al guardar la reservación. Revisa la consola.');
