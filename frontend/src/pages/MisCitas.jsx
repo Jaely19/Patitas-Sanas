@@ -8,6 +8,7 @@ function MisCitas() {
   const [citas, setCitas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
+  const [borrando, setBorrando] = useState(null);
 
   const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
@@ -20,13 +21,30 @@ function MisCitas() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return navigate('/login');
 
-      // Traer TODAS las mascotas con sus citas (sin filtrar por cliente)
+      const correo = session.user.email;
+
+      // Buscar clientes con ese correo
+      const { data: clientes, error: errorClientes } = await supabase
+        .from('clientes')
+        .select('id_cliente')
+        .eq('correo', correo);
+
+      if (errorClientes) throw errorClientes;
+      if (!clientes || clientes.length === 0) {
+        setCitas([]);
+        setCargando(false);
+        return;
+      }
+
+      const idsClientes = clientes.map(c => c.id_cliente);
+
+      // Buscar mascotas de esos clientes
       const { data: mascotas, error: errorMascotas } = await supabase
         .from('mascotas')
-        .select('id_mascota, nombre, especie');
+        .select('id_mascota, nombre, especie')
+        .in('id_cliente', idsClientes);
 
       if (errorMascotas) throw errorMascotas;
-
       if (!mascotas || mascotas.length === 0) {
         setCitas([]);
         setCargando(false);
@@ -35,16 +53,15 @@ function MisCitas() {
 
       const idsMascotas = mascotas.map(m => m.id_mascota);
 
-      // Obtener citas de esas mascotas
+      // Buscar citas de esas mascotas
       const { data: citasData, error: errorCitas } = await supabase
         .from('citas')
-        .select('*, id_mascota, fecha_hora, motivo')
+        .select('*')
         .in('id_mascota', idsMascotas)
         .order('fecha_hora', { ascending: true });
 
       if (errorCitas) throw errorCitas;
 
-      // Combinar citas con info de la mascota
       const citasConMascota = (citasData || []).map(cita => {
         const mascota = mascotas.find(m => m.id_mascota === cita.id_mascota);
         return { ...cita, mascota };
@@ -56,6 +73,28 @@ function MisCitas() {
       setError('No se pudieron cargar tus citas. Intenta de nuevo.');
     } finally {
       setCargando(false);
+    }
+  };
+
+  const borrarCita = async (idCita) => {
+    const confirmar = window.confirm('¿Seguro que quieres cancelar esta cita?');
+    if (!confirmar) return;
+
+    setBorrando(idCita);
+    try {
+      const { error } = await supabase
+        .from('citas')
+        .delete()
+        .eq('id_cita', idCita);
+
+      if (error) throw error;
+
+      setCitas(prev => prev.filter(c => (c.id_cita || c.id) !== idCita));
+    } catch (err) {
+      console.error('Error borrando cita:', err.message);
+      alert('No se pudo cancelar la cita. Intenta de nuevo.');
+    } finally {
+      setBorrando(null);
     }
   };
 
@@ -109,6 +148,7 @@ function MisCitas() {
               {citas.map((cita, index) => {
                 const { fecha, hora } = formatearFecha(cita.fecha_hora);
                 const futura = esFutura(cita.fecha_hora);
+                const idCita = cita.id_cita || cita.id;
                 return (
                   <div key={index} className={`cita-card ${futura ? 'futura' : 'pasada'}`}>
                     <div className="cita-status-badge">
@@ -138,6 +178,13 @@ function MisCitas() {
                           <span className="detalle-valor">{hora}</span>
                         </div>
                       </div>
+                      <button
+                        className="btn-borrar"
+                        onClick={() => borrarCita(idCita)}
+                        disabled={borrando === idCita}
+                      >
+                        {borrando === idCita ? 'Cancelando...' : '🗑 Cancelar Cita'}
+                      </button>
                     </div>
                   </div>
                 );
