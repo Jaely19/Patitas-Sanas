@@ -44,18 +44,21 @@ function PortalCliente() {
 
   const cargarMisCitas = async (idCliente) => {
     try {
+      // Corregido: Se añade !inner para poder filtrar por una columna de la tabla relacionada
       const { data, error } = await supabase
         .from('citas')
         .select(`
-          id_cita, fecha_hora, motivo,
-          mascotas ( id_cliente, nombre, clientes ( nombre_completo, telefono ) ),
+          id_cita, 
+          fecha_hora, 
+          motivo,
+          mascotas!inner ( id_cliente, nombre, clientes ( nombre_completo, telefono ) ),
           veterinarios ( nombre_completo )
         `)
+        .eq('mascotas.id_cliente', idCliente) // Filtramos en el servidor en lugar de usar .filter()
         .order('fecha_hora', { ascending: false });
 
       if (error) throw error;
-      const filtradas = (data || []).filter(c => c.mascotas?.id_cliente === idCliente);
-      setMisCitas(filtradas);
+      setMisCitas(data || []);
     } catch (error) {
       console.error("Error al cargar citas:", error.message);
     }
