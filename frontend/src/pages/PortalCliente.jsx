@@ -7,7 +7,7 @@ function PortalCliente() {
   const [misCitas, setMisCitas] = useState([]);
   const [misMascotas, setMisMascotas] = useState([]);
   const [cargando, setCargando] = useState(true);
-  const [usuarioNombre, setUsuarioNombre] = useState('Cliente'); // Valor inicial por defecto
+  const [usuarioNombre, setUsuarioNombre] = useState('Cliente'); 
   const [clienteId, setClienteId] = useState(null);
   const [mostrarFormMascota, setMostrarFormMascota] = useState(false);
   const [nuevaMascota, setNuevaMascota] = useState({
@@ -23,26 +23,29 @@ function PortalCliente() {
   const obtenerSesion = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) {
+        setCargando(false);
+        return;
+      }
 
-      // CAMBIO: ahora buscamos en la columna 'correo_electronico'
+      // Consulta a la base de datos con los nombres de columna correctos
       const { data: cliente, error } = await supabase
         .from('clientes')
-        .select('id_cliente, nombre') // CAMBIO: tu columna se llama 'nombre', no 'nombre_completo'
-        .eq('correo_electronico', session.user.email) // CAMBIO: tu columna se llama 'correo_electronico'
+        .select('id_cliente, nombre') 
+        .eq('correo_electronico', session.user.email)
         .single();
 
       if (error) throw error;
 
-      setUsuarioNombre(cliente.nombre); // CAMBIO: usamos 'nombre'
+      setUsuarioNombre(cliente.nombre);
       setClienteId(cliente.id_cliente);
-      // ... resto de tu código
+      
     } catch (error) {
       console.error("Error al obtener sesión:", error.message);
+    } finally {
+      setCargando(false); // Asegura que el estado de carga termine
     }
   };
-
-  // ... (tus funciones cargarMisCitas, cargarMisMascotas, etc., se quedan igual)
 
   const handleCerrarSesion = async () => {
     await supabase.auth.signOut();
@@ -60,7 +63,7 @@ function PortalCliente() {
         </Link>
       </div>
 
-      {/* ... (resto de tu JSX para mascotas y citas) */}
+      {/* Aquí iría el resto de tu contenido de mascotas/citas */}
 
       <div className="portal-footer">
         <button onClick={handleCerrarSesion} className="btn-link">← Cerrar Sesión</button>
