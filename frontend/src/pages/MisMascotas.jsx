@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../supabase';
 import './PortalCliente.css';
 
@@ -57,6 +58,10 @@ function MisMascotas() {
 
   return (
     <div className="portal-container">
+      <Link to="/portal-cliente" style={{ color: '#012b81', textDecoration: 'none', fontWeight: 'bold', display: 'inline-block', marginBottom: '20px' }}>
+        ← Volver al Portal
+      </Link>
+
       <header className="portal-header">
         <h1>Mis Mascotas</h1>
       </header>
