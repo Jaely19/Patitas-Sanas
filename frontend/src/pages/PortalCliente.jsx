@@ -4,7 +4,7 @@ import { supabase } from '../supabase';
 import './PortalCliente.css';
 
 function PortalCliente() {
-  const [usuarioNombre, setUsuarioNombre] = useState('Cliente'); 
+  const [usuarioNombre, setUsuarioNombre] = useState('Cliente');
   const [cargando, setCargando] = useState(true);
   const navigate = useNavigate();
 
@@ -17,16 +17,30 @@ function PortalCliente() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return navigate('/login');
 
+      console.log("Email de sesión activa:", session.user.email);
+
+      // Consulta blindada
       const { data: cliente, error } = await supabase
         .from('clientes')
         .select('nombre') 
-        .eq('correo_electronico', session.user.email)
+        .eq('correo_electronico', session.user.email) // Asegúrate que sea EXACTAMENTE este nombre de columna
         .single();
 
-      if (error) throw error;
-      setUsuarioNombre(cliente.nombre);
+      if (error) {
+        console.error("Error específico de Supabase:", error);
+        throw error;
+      }
+
+      console.log("Datos obtenidos de la tabla clientes:", cliente);
+      
+      if (cliente && cliente.nombre) {
+        setUsuarioNombre(cliente.nombre);
+      } else {
+        console.warn("La consulta fue exitosa pero no se encontró el nombre en la columna 'nombre'");
+      }
+      
     } catch (error) {
-      console.error("Error:", error.message);
+      console.error("Error general en obtenerSesion:", error.message);
     } finally {
       setCargando(false);
     }
@@ -44,26 +58,21 @@ function PortalCliente() {
       <section className="dashboard-grid">
         <div className="card">
           <h3>Mis Mascotas</h3>
-          <p>Gestiona el historial y datos de tus peluditos.</p>
           <button className="btn-secundario">Ver Mascotas</button>
         </div>
-
         <div className="card">
           <h3>Mis Citas</h3>
-          <p>Revisa tus próximas visitas al veterinario.</p>
           <button className="btn-secundario">Ver Citas</button>
         </div>
-
-        <div className="card highlight">
+        <div className="card">
           <h3>Agendar Nueva Cita</h3>
-          <p>Reserva un espacio para revisión o vacuna.</p>
           <Link to="/agendar-cita"><button className="btn-primario">+ Agendar</button></Link>
         </div>
       </section>
 
       <footer className="portal-footer">
         <button onClick={() => supabase.auth.signOut().then(() => navigate('/'))} className="btn-text">
-          ← Cerrar Sesión
+          Cerrar Sesión
         </button>
       </footer>
     </div>
