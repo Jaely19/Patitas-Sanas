@@ -20,7 +20,7 @@ function PortalCliente() {
       const { data: cliente, error } = await supabase
         .from('clientes')
         .select('nombre_completo')
-        .eq('correo_electronico', session.user.email)
+        .eq('correo', session.user.email)
         .single();
 
       if (error) throw error;
