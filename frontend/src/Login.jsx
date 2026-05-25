@@ -1,14 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from './supabase';
+import { supabase } from './supabase'; // 💡 Asegúrate de usar la ruta correcta a tu archivo de configuración de Supabase
 import './Login.css';
 
 function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [nombreCompleto, setNombreCompleto] = useState('');
-  const [telefono, setTelefono] = useState('');
   const [cargando, setCargando] = useState(false);
   const navigate = useNavigate();
 
@@ -16,10 +14,16 @@ function Login() {
     e.preventDefault();
     setCargando(true);
 
+    // 🧼 Limpiamos espacios en blanco invisibles al inicio o final del correo
+    const emailLimpio = email.trim();
+
     try {
       if (isLogin) {
         // --- INICIAR SESIÓN ---
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ 
+          email: emailLimpio, 
+          password 
+        });
         if (error) throw error;
 
         alert(`¡Bienvenido de nuevo!`);
@@ -27,35 +31,15 @@ function Login() {
 
       } else {
         // --- REGISTRARSE ---
-        if (!nombreCompleto) {
-          alert('Por favor ingresa tu nombre completo.');
-          setCargando(false);
-          return;
-        }
-
-        // 1. Crear el usuario en Supabase Auth
-        const { data: authData, error: errorAuth } = await supabase.auth.signUp({ email, password });
+        // 1. Crear el usuario únicamente en Supabase Auth
+        // El flujo continuará en la pantalla de agendar cita, donde se guardarán los datos residenciales y de la mascota.
+        const { error: errorAuth } = await supabase.auth.signUp({ 
+          email: emailLimpio, 
+          password 
+        });
         if (errorAuth) throw errorAuth;
 
-        // Validamos que realmente se haya generado una sesión o un usuario antes de proceder
-        if (authData?.user) {
-          // 2. Insertar en la tabla clientes con el email
-          const { error: errorCliente } = await supabase
-            .from('clientes')
-            .insert([{
-              nombre_completo: nombreCompleto,
-              telefono: telefono || null,
-              email: email,
-            }]);
-
-          // Si falla la inserción en la tabla de tu base de datos, lanzamos un error para detener el flujo
-          if (errorCliente) {
-            console.error("Error al registrar en tabla clientes:", errorCliente.message);
-            throw new Error("Se creó el usuario de acceso, pero hubo un problema al guardar tus datos de cliente. Por favor, reporta este problema.");
-          }
-        }
-
-        alert('¡Cuenta creada con éxito! Ahora agenda tu primera cita.');
+        alert('¡Cuenta creada con éxito! Ahora por favor completa los datos de tu cita.');
         navigate('/agendar-cita');
       }
     } catch (error) {
@@ -80,31 +64,6 @@ function Login() {
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
-
-          {/* Solo al registrarse pedimos nombre y teléfono */}
-          {!isLogin && (
-            <>
-              <div className="input-group">
-                <label>Nombre Completo *</label>
-                <input
-                  type="text"
-                  placeholder="Tu nombre completo"
-                  value={nombreCompleto}
-                  onChange={(e) => setNombreCompleto(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="input-group">
-                <label>Teléfono (opcional)</label>
-                <input
-                  type="tel"
-                  placeholder="10 dígitos"
-                  value={telefono}
-                  onChange={(e) => setTelefono(e.target.value)}
-                />
-              </div>
-            </>
-          )}
 
           <div className="input-group">
             <label>Correo Electrónico</label>

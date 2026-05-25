@@ -17,16 +17,26 @@ function PortalCliente() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return navigate('/login');
 
+      // Usamos .maybeSingle() para que no marque error si el cliente es nuevo y aún no tiene citas/registros
       const { data: cliente, error } = await supabase
         .from('clientes')
         .select('nombre_completo')
         .eq('correo', session.user.email)
-        .single();
+        .maybeSingle(); 
 
       if (error) throw error;
-      if (cliente) setUsuarioNombre(cliente.nombre_completo);
+
+      if (cliente && cliente.nombre_completo) {
+        setUsuarioNombre(cliente.nombre_completo);
+      } else {
+        // TRUCO: Si aún no tiene nombre registrado, sacamos el nombre de su correo
+        // Ejemplo: "kevin@gmail.com" -> "Kevin"
+        const nombreDelCorreo = session.user.email.split('@')[0];
+        const nombreCapitalizado = nombreDelCorreo.charAt(0).toUpperCase() + nombreDelCorreo.slice(1);
+        setUsuarioNombre(nombreCapitalizado);
+      }
     } catch (error) {
-      console.error("Error:", error.message);
+      console.error("Error al obtener datos:", error.message);
     } finally {
       setCargando(false);
     }
