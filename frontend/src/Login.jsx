@@ -15,11 +15,28 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const emailLimpio = email.trim();
+
+    // ==========================================
+    // --- MODO DEMO: USUARIOS DE PRUEBA ---
+    // ==========================================
+    if (emailLimpio === 'veterinario@demo.com' && password === 'vet123') {
+      navigate('/demo-veterinario');
+      return; 
+    }
+
+    if (emailLimpio === 'recepcionista@demo.com' && password === 'rec123') {
+      navigate('/demo-recepcionista');
+      return; 
+    }
+    // ==========================================
+
     setCargando(true);
     try {
       if (modo === 'cliente') {
         if (isLogin) {
-          const { error } = await supabase.auth.signInWithPassword({ email, password });
+          const { error } = await supabase.auth.signInWithPassword({ email: emailLimpio, password });
           if (error) throw error;
           navigate('/portal-cliente');
         } else {
@@ -28,22 +45,22 @@ function Login() {
             setCargando(false);
             return;
           }
-          const { error: errorAuth } = await supabase.auth.signUp({ email, password });
+          const { error: errorAuth } = await supabase.auth.signUp({ email: emailLimpio, password });
           if (errorAuth) throw errorAuth;
           const { error: errorCliente } = await supabase
             .from('clientes')
-            .insert([{ nombre_completo: nombreCompleto, telefono: telefono || null, email }]);
+            .insert([{ nombre_completo: nombreCompleto, telefono: telefono || null, email: emailLimpio }]);
           if (errorCliente) throw errorCliente;
           alert('¡Cuenta creada! Ahora agenda tu primera cita.');
           navigate('/agendar-cita');
         }
       } else if (modo === 'veterinario') {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email: emailLimpio, password });
         if (error) throw error;
         const { data: emp } = await supabase
           .from('veterinarios')
           .select('*')
-          .eq('email', email)
+          .eq('email', emailLimpio)
           .single();
         if (!emp) {
           await supabase.auth.signOut();
@@ -51,12 +68,12 @@ function Login() {
         }
         navigate('/panel-vet');
       } else if (modo === 'administrador') {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email: emailLimpio, password });
         if (error) throw error;
         const { data: emp } = await supabase
           .from('recepcionistas')
           .select('*')
-          .eq('email', email)
+          .eq('email', emailLimpio)
           .eq('rol', 'Administrador')
           .single();
         if (!emp) {

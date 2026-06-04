@@ -9,6 +9,8 @@ import Medico from './pages/Medico';
 import Admin from './pages/Admin';
 import AgendarCita from './pages/AgendarCita'; 
 import PortalCliente from './pages/PortalCliente';
+import { DashVet } from './pages/DashVet';
+import { DashRec } from './pages/DashRec';
 
 function App() {
   return (
@@ -69,6 +71,9 @@ function App() {
 
           </div>
         } />
+        {/* === RUTAS DE DEMOSTRACIÓN === */}
+        <Route path="/demo-veterinario" element={<DashVet />} />
+        <Route path="/demo-recepcionista" element={<DashRec />} />
       </Routes>
     </BrowserRouter>
   );
