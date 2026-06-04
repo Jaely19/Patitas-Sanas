@@ -1,0 +1,170 @@
+.login-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f4f7f6;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 20px;
+}
+
+.login-card {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+
+.login-card h2 {
+  color: #012b81;
+  margin-bottom: 25px;
+  font-size: 24px;
+}
+
+.rol-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  justify-content: center;
+}
+
+.rol-btn {
+  flex: 1;
+  padding: 10px 6px;
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #aaa;
+  transition: all 0.2s;
+}
+
+.active-cliente {
+  border-color: #f39c12;
+  color: #f39c12;
+  background: #fff8ee;
+}
+
+.active-vet {
+  border-color: #4CAF50;
+  color: #4CAF50;
+  background: #f0fff0;
+}
+
+.active-admin {
+  border-color: #012b81;
+  color: #012b81;
+  background: #eef2ff;
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #eee;
+}
+
+.tabs button {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  color: #a0aabf;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tabs button.active {
+  color: #012b81;
+  border-bottom: 3px solid #f39c12;
+}
+
+.login-form {
+  text-align: left;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #012b81;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.3s;
+}
+
+.input-group input:focus {
+  border-color: #f39c12;
+  outline: none;
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 15px;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+
+.btn-cliente {
+  background-color: #f39c12;
+}
+
+.btn-cliente:hover {
+  background-color: #e67e22;
+}
+
+.btn-veterinario {
+  background-color: #4CAF50;
+}
+
+.btn-veterinario:hover {
+  background-color: #388E3C;
+}
+
+.btn-administrador {
+  background-color: #012b81;
+}
+
+.btn-administrador:hover {
+  background-color: #011d5a;
+}
+
+.login-footer {
+  margin-top: 25px;
+}
+
+.login-footer a {
+  color: #012b81;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: bold;
+  transition: opacity 0.3s;
+}
+
+.login-footer a:hover {
+  opacity: 0.7;
+}

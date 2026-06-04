@@ -1,0 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&family=IBM+Plex+Sans:wght@500;700&display=swap');
+
+.agendar-wrapper {
+  background-color: #f7f7ff;
+  color: #292faa;
+  font-family: 'Nunito Sans', sans-serif;
+  line-height: 1.6;
+  min-height: 100vh;
+  padding: 40px 0;
+}
+
+.agendar-wrapper h1, .agendar-wrapper h2, .agendar-wrapper h3 {
+  font-family: 'IBM Plex Sans', sans-serif;
+  color: #012b81;
+}
+
+.agendar-wrapper .container { width: 90%; max-width: 1000px; margin: 0 auto; }
+
+.agendar-wrapper .appointment-card {
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.agendar-wrapper .header-citas { text-align: center; margin-bottom: 40px; }
+.agendar-wrapper .header-citas p { color: #686e73; font-size: 1.1rem; }
+
+/* GRID PRINCIPAL */
+.agendar-wrapper .booking-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+/* CALENDARIO */
+.agendar-wrapper .calendar-box h3 { margin-bottom: 15px; font-size: 1.2rem; }
+.agendar-wrapper .calendar {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.agendar-wrapper .cal-header {
+  background: #012b81;
+  color: white;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+}
+.agendar-wrapper .cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 10px;
+  text-align: center;
+}
+.agendar-wrapper .day-name { font-weight: 700; font-size: 0.8rem; padding: 10px 0; color: #888; }
+.agendar-wrapper .day {
+  padding: 12px 5px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: 0.3s;
+  font-weight: 600;
+}
+.agendar-wrapper .day:hover:not(.empty):not(.disabled) { background: #3CCAFF; color: white; }
+.agendar-wrapper .day.selected { background: #FF9B1B !important; color: white; }
+.agendar-wrapper .day.disabled { color: #ccc; cursor: not-allowed; }
+.agendar-wrapper .empty { cursor: default; }
+
+/* HORARIOS */
+.agendar-wrapper .time-box h3 { margin-bottom: 15px; font-size: 1.2rem; }
+.agendar-wrapper .time-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.agendar-wrapper .slot {
+  padding: 10px;
+  border: 1px solid #012b81;
+  border-radius: 5px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s;
+}
+.agendar-wrapper .slot:hover:not(.unavailable) { background: #012b81; color: white; }
+.agendar-wrapper .slot.selected { background: #012b81; color: white; }
+.agendar-wrapper .slot.unavailable { background: #f0f0f0; border-color: #ddd; color: #aaa; cursor: not-allowed; }
+
+/* FORMULARIO */
+.agendar-wrapper .form-section { margin-top: 40px; padding-top: 30px; border-top: 1px solid #eee; }
+.agendar-wrapper .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.agendar-wrapper .input-group { display: flex; flex-direction: column; margin-bottom: 15px; }
+.agendar-wrapper label { font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; }
+.agendar-wrapper input, .agendar-wrapper select {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-family: inherit;
+}
+
+.agendar-wrapper .btn-confirm {
+  grid-column: span 2;
+  background: #FF9B1B;
+  color: white;
+  border: none;
+  padding: 15px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: 0.3s;
+  text-transform: uppercase;
+}
+.agendar-wrapper .btn-confirm:hover { background: #012b81; transform: translateY(-2px); }
+
+@media (max-width: 768px) {
+  .agendar-wrapper .booking-grid, .agendar-wrapper .form-grid { grid-template-columns: 1fr; }
+  .agendar-wrapper .btn-confirm { grid-column: span 1; }
+}

@@ -1,0 +1,125 @@
+.admin-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 2rem;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.admin-header {
+  background: linear-gradient(135deg, #012b81, #1a4ab5);
+  border-radius: 16px;
+  padding: 2rem;
+  color: white;
+  margin-bottom: 2rem;
+}
+
+.admin-header h1 { font-size: 28px; font-weight: 500; }
+.admin-header p { opacity: 0.8; margin-top: 4px; }
+
+.admin-menu {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 2rem;
+}
+
+.admin-menu button {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  background: white;
+  font-size: 15px;
+  cursor: pointer;
+  color: #888;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.admin-menu button.activo {
+  border-color: #012b81;
+  color: #012b81;
+  background: #eef2ff;
+}
+
+.admin-seccion h2 {
+  font-size: 18px;
+  color: #012b81;
+  margin-bottom: 1rem;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #012b81;
+}
+
+.admin-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid #012b81;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.admin-card p { font-size: 14px; color: #333; margin-bottom: 4px; }
+.admin-card strong { color: #012b81; }
+
+.btn-eliminar {
+  margin-top: 10px;
+  padding: 6px 14px;
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.btn-eliminar:hover { background: #fecaca; }
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-form input {
+  padding: 10px 14px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.admin-form input:focus {
+  outline: none;
+  border-color: #012b81;
+}
+
+.btn-agregar {
+  padding: 12px;
+  background: #012b81;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-agregar:hover { background: #011d5a; }
+
+.admin-mensaje {
+  background: #f0fff4;
+  color: #16a34a;
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.vacio {
+  color: #888;
+  text-align: center;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+}
