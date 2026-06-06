@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import './Inicio.css'; // Importamos el diseño que acabamos de crear
+import './Inicio.css'; 
 
 function Inicio() {
   return (
