@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Inicio from './pages/Inicio';
 import Login from './Login';
 import Clientes from './pages/Clientes';
-import MisMascotas from './pages/Mascotas';
+import Mascotas from './pages/Mascotas';
 import Citas from './pages/Citas';
 import Recepcion from './pages/Recepcion'; 
 import Medico from './pages/Medico'; 
@@ -17,27 +17,16 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* === RUTA PÚBLICA (Landing Page sin menú lateral) === */}
         <Route path="/" element={<Inicio />} />
-        
         <Route path="/portal-cliente" element={<PortalCliente />} />
-        <Route path="/mis-citas" element={<MisCitas />} /> {/* 👈 AGREGADO */}
-
-        {/* === RUTA DE LOGIN === */}
+        <Route path="/mis-citas" element={<MisCitas />} />
         <Route path="/login" element={<Login />} />
-
-        {/* === NUEVA RUTA PARA QUE LOS CLIENTES AGENDEN === */}
         <Route path="/agendar-cita" element={<AgendarCita />} />
-
-        {/* === NUEVA RUTA DEL PANEL MÉDICO (Ocupa pantalla completa) === */}
         <Route path="/panel-vet" element={<Medico />} />
         <Route path="/admin" element={<Admin />} />
 
-        {/* === RUTAS DEL SISTEMA (Dashboard con menú lateral oscuro) === */}
         <Route path="/*" element={
           <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'Arial, sans-serif' }}>
-            
-            {/* MENÚ LATERAL INTERNO */}
             <nav style={{ width: '250px', backgroundColor: '#1a1a1a', padding: '20px', borderRight: '2px solid #4CAF50' }}>
               <h2 style={{ color: '#4CAF50', textAlign: 'center', marginBottom: '40px' }}>🐾 Panel Interno</h2>
               <ul style={{ listStyle: 'none', padding: 0 }}>
@@ -59,7 +48,6 @@ function App() {
               </ul>
             </nav>
 
-            {/* ÁREA DINÁMICA DEL DASHBOARD */}
             <main style={{ flex: 1, backgroundColor: '#242424', height: '100vh', overflowY: 'auto' }}>
               <Routes>
                 <Route path="/recepcion" element={<Recepcion />} />
@@ -68,10 +56,9 @@ function App() {
                 <Route path="/citas" element={<Citas />} />
               </Routes>
             </main>
-
           </div>
         } />
-        {/* === RUTAS DE DEMOSTRACIÓN === */}
+
         <Route path="/demo-veterinario" element={<DashVet />} />
         <Route path="/demo-recepcionista" element={<DashRec />} />
       </Routes>
