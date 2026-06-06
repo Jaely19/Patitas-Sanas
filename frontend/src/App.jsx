@@ -11,6 +11,7 @@ import AgendarCita from './pages/AgendarCita';
 import PortalCliente from './pages/PortalCliente';
 import { DashVet } from './pages/DashVet';
 import { DashRec } from './pages/DashRec';
+import MisCitas from './pages/Citas'; // 👈 AGREGADO
 
 function App() {
   return (
@@ -20,6 +21,8 @@ function App() {
         <Route path="/" element={<Inicio />} />
         
         <Route path="/portal-cliente" element={<PortalCliente />} />
+        <Route path="/mis-citas" element={<MisCitas />} /> {/* 👈 AGREGADO */}
+
         {/* === RUTA DE LOGIN === */}
         <Route path="/login" element={<Login />} />
 
@@ -38,7 +41,6 @@ function App() {
             <nav style={{ width: '250px', backgroundColor: '#1a1a1a', padding: '20px', borderRight: '2px solid #4CAF50' }}>
               <h2 style={{ color: '#4CAF50', textAlign: 'center', marginBottom: '40px' }}>🐾 Panel Interno</h2>
               <ul style={{ listStyle: 'none', padding: 0 }}>
-                {/* --- NUEVO BOTÓN DE RECEPCIÓN --- */}
                 <li style={{ margin: '20px 0' }}>
                   <Link to="/recepcion" style={{ color: 'white', textDecoration: 'none', fontSize: '18px', display: 'block', padding: '10px', backgroundColor: '#012b81', borderRadius: '5px', fontWeight: 'bold' }}>📅 Agenda y Caja</Link>
                 </li>
@@ -51,8 +53,6 @@ function App() {
                 <li style={{ margin: '20px 0' }}>
                   <Link to="/citas" style={{ color: 'white', textDecoration: 'none', fontSize: '18px', display: 'block', padding: '10px', backgroundColor: '#333', borderRadius: '5px' }}>📅 Agenda</Link>
                 </li>
-
-                {/* Botón para regresar al sitio público */}
                 <li style={{ marginTop: '50px' }}>
                   <Link to="/" style={{ color: '#aaa', textDecoration: 'none', fontSize: '15px', display: 'block', padding: '10px', border: '1px solid #555', borderRadius: '5px', textAlign: 'center' }}>⬅ Volver al Inicio</Link>
                 </li>
@@ -62,7 +62,7 @@ function App() {
             {/* ÁREA DINÁMICA DEL DASHBOARD */}
             <main style={{ flex: 1, backgroundColor: '#242424', height: '100vh', overflowY: 'auto' }}>
               <Routes>
-                <Route path="/recepcion" element={<Recepcion />} /> {/* <-- Nueva ruta */}
+                <Route path="/recepcion" element={<Recepcion />} />
                 <Route path="/clientes" element={<Clientes />} />
                 <Route path="/mascotas" element={<Mascotas />} />
                 <Route path="/citas" element={<Citas />} />
