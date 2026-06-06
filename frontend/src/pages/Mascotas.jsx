@@ -184,8 +184,8 @@ function Mascotas() {
             />
             <select value={sexo} onChange={(e) => setSexo(e.target.value)}>
               <option value="">Sexo</option>
-              <option value="Macho">Macho</option>
-              <option value="Hembra">Hembra</option>
+              <option value="M">Macho</option>
+              <option value="H">Hembra</option>
             </select>
             <select value={especie} onChange={(e) => setEspecie(e.target.value)}>
               <option value="">Especie</option>
@@ -212,7 +212,7 @@ function Mascotas() {
             mascotas.map((m) => (
               <div key={m.id_mascota} className="masc-pet-item">
                 <strong>{m.nombre} — {m.especie}</strong>
-                <span>Sexo: {m.sexo || 'N/A'} | Edad: {m.edad ? m.edad + ' años' : 'N/A'}</span>
+                <span>Sexo: {m.sexo === 'M' ? 'Macho' : m.sexo === 'H' ? 'Hembra' : 'N/A'} | Edad: {m.edad ? m.edad + ' años' : 'N/A'}</span>
               </div>
             ))
           )}
