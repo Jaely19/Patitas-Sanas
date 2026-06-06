@@ -1,40 +1,23 @@
 import { useState, useEffect } from 'react';
 
 function Mascotas() {
-  const [clientes, setClientes] = useState([]);
-  const [mascotasDelCliente, setMascotasDelCliente] = useState([]);
-
-  const [idCliente, setIdCliente] = useState('');
+  const [mascotas, setMascotas] = useState([]);
   const [nombre, setNombre] = useState('');
   const [especie, setEspecie] = useState('');
   const [raza, setRaza] = useState('');
   const [fechaNacimiento, setFechaNacimiento] = useState('');
   const [sexo, setSexo] = useState('');
-  const [color, setColor] = useState('');
 
-  // ── Cargar dueños al inicio ──
   useEffect(() => {
-    fetch('http://localhost:4000/api/clientes')
+    fetch('http://localhost:4000/api/mascotas')
       .then((r) => r.json())
-      .then((datos) => setClientes(datos))
-      .catch((e) => console.error('Error al cargar dueños:', e));
+      .then((datos) => setMascotas(datos))
+      .catch((e) => console.error('Error al cargar mascotas:', e));
   }, []);
 
-  // ── Cargar mascotas cuando cambia el dueño seleccionado ──
-  const cargarMascotasDelDueño = (id) => {
-    if (!id) { setMascotasDelCliente([]); return; }
-    fetch(`http://localhost:4000/api/mascotas/cliente/${id}`)
-      .then((r) => r.json())
-      .then((datos) => setMascotasDelCliente(datos))
-      .catch((e) => console.error('Error al cargar mascotas:', e));
-  };
-
-  useEffect(() => { cargarMascotasDelDueño(idCliente); }, [idCliente]);
-
-  // ── Guardar mascota ──
   const guardarMascota = async (evento) => {
     evento.preventDefault();
-    const nuevaMascota = { id_cliente: idCliente, nombre, especie, raza, fecha_nacimiento: fechaNacimiento, sexo, color };
+    const nuevaMascota = { nombre, especie, raza, fecha_nacimiento: fechaNacimiento, sexo };
     try {
       const respuesta = await fetch('http://localhost:4000/api/mascotas', {
         method: 'POST',
@@ -42,10 +25,12 @@ function Mascotas() {
         body: JSON.stringify(nuevaMascota),
       });
       if (respuesta.ok) {
-        alert('¡Paciente registrado con éxito!');
+        alert('¡Mascota guardada con éxito!');
         setNombre(''); setEspecie(''); setRaza('');
-        setFechaNacimiento(''); setSexo(''); setColor('');
-        cargarMascotasDelDueño(idCliente);
+        setFechaNacimiento(''); setSexo('');
+        fetch('http://localhost:4000/api/mascotas')
+          .then((r) => r.json())
+          .then((datos) => setMascotas(datos));
       }
     } catch (e) { console.error('Error al guardar mascota:', e); }
   };
@@ -53,216 +38,170 @@ function Mascotas() {
   return (
     <>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
         .masc-wrap {
-          padding: 36px 32px;
-          max-width: 860px;
-          margin: 0 auto;
-          font-family: 'Nunito', 'Segoe UI', sans-serif;
-          color: #fff;
-        }
-        .masc-title {
-          font-size: 1.6rem;
-          font-weight: 800;
-          color: #4CAF50;
-          border-bottom: 2px solid #4CAF50;
-          padding-bottom: 10px;
-          margin-bottom: 28px;
-        }
-
-        /* ── CARD ── */
-        .masc-card {
-          background: #1e1e1e;
-          border-radius: 16px;
-          padding: 28px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-          margin-bottom: 28px;
-        }
-        .masc-card label {
-          display: block;
-          font-size: 0.85rem;
-          font-weight: 700;
-          color: #aaa;
-          margin-bottom: 8px;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
-        }
-
-        /* ── INPUTS ── */
-        .masc-select, .masc-input {
-          width: 100%;
-          padding: 11px 14px;
-          border-radius: 9px;
-          border: 1px solid #3a3a3a;
-          background: #141414;
-          color: #fff;
-          font-family: inherit;
-          font-size: 0.95rem;
-          outline: none;
-          transition: border-color 0.2s;
-          margin-bottom: 16px;
-        }
-        .masc-select:focus, .masc-input:focus { border-color: #4CAF50; }
-        .masc-input::placeholder { color: #555; }
-        .masc-input[type="date"] { color-scheme: dark; }
-
-        /* ── ROW ── */
-        .masc-row {
+          font-family: 'Nunito', sans-serif;
           display: flex;
-          gap: 12px;
+          flex-direction: column;
+          align-items: center;
+          padding: 40px 20px;
+          min-height: 100%;
+          background: #f0f2f8;
         }
-        .masc-row > * { flex: 1; }
 
-        /* ── BOTÓN ── */
-        .masc-btn {
+        .masc-modal {
+          background: #fff;
+          border-radius: 20px;
+          padding: 40px 36px;
           width: 100%;
-          padding: 13px;
-          background: #4CAF50;
+          max-width: 520px;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        }
+
+        .masc-modal h2 {
+          font-size: 1.7rem;
+          font-weight: 800;
+          color: #1a2a6c;
+          text-align: center;
+          margin-bottom: 24px;
+        }
+
+        .masc-form-box {
+          border: 1px solid #e0e0e0;
+          border-radius: 14px;
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          margin-bottom: 28px;
+        }
+
+        .masc-form-box input,
+        .masc-form-box select {
+          width: 100%;
+          border: 1px solid #d0d0d0;
+          border-radius: 8px;
+          padding: 11px 14px;
+          font-family: 'Nunito', sans-serif;
+          font-size: 0.95rem;
+          color: #333;
+          outline: none;
+          transition: border-color 0.15s;
+          background: #fff;
+        }
+        .masc-form-box input:focus,
+        .masc-form-box select:focus { border-color: #4a90d9; }
+        .masc-form-box input::placeholder { color: #bbb; }
+        .masc-form-box input[type="date"] { color: #333; }
+
+        .masc-date-label {
+          font-size: 0.8rem;
+          color: #999;
+          margin-bottom: -6px;
+          padding-left: 2px;
+        }
+
+        .masc-btn-guardar {
+          background: #4a90d9;
           color: #fff;
           border: none;
           border-radius: 10px;
-          font-family: inherit;
+          padding: 12px;
+          font-family: 'Nunito', sans-serif;
           font-size: 1rem;
-          font-weight: 800;
-          cursor: pointer;
-          margin-top: 4px;
-          transition: opacity 0.15s, transform 0.1s;
-        }
-        .masc-btn:hover { opacity: 0.88; transform: translateY(-1px); }
-
-        /* ── TABLA ── */
-        .masc-table-title {
-          font-size: 1rem;
-          font-weight: 800;
-          color: #4CAF50;
-          margin-bottom: 16px;
-        }
-        .masc-table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 0.93rem;
-        }
-        .masc-table thead tr {
-          border-bottom: 2px solid #4CAF50;
-        }
-        .masc-table th {
-          padding: 10px 14px;
-          text-align: left;
-          color: #aaa;
           font-weight: 700;
-          text-transform: uppercase;
-          font-size: 0.78rem;
-          letter-spacing: 0.05em;
+          cursor: pointer;
+          width: 100%;
+          transition: opacity 0.15s;
         }
-        .masc-table tbody tr {
-          border-bottom: 1px solid #2a2a2a;
-          transition: background 0.15s;
+        .masc-btn-guardar:hover { opacity: 0.88; }
+
+        .masc-pets-title {
+          font-size: 1.05rem;
+          font-weight: 800;
+          color: #1a2a6c;
+          text-align: center;
+          margin-bottom: 14px;
         }
-        .masc-table tbody tr:hover { background: #252525; }
-        .masc-table td { padding: 12px 14px; }
-        .masc-table td:first-child { color: #4CAF50; font-weight: 700; }
 
-        .masc-empty { color: #666; font-size: 0.9rem; padding: 10px 0; }
+        .masc-pet-item {
+          border: 1px solid #e8e8e8;
+          border-radius: 12px;
+          padding: 14px 18px;
+          margin-bottom: 10px;
+          background: #fafafa;
+        }
+        .masc-pet-item strong {
+          font-size: 0.97rem;
+          color: #1a2a6c;
+          display: block;
+        }
+        .masc-pet-item span {
+          font-size: 0.87rem;
+          color: #777;
+          margin-top: 3px;
+          display: block;
+        }
 
-        /* ── DIVIDER ── */
-        .masc-divider {
-          border: none;
-          border-top: 1px solid #2a2a2a;
-          margin: 20px 0;
+        .masc-empty {
+          text-align: center;
+          color: #aaa;
+          font-size: 0.9rem;
+          padding: 10px 0;
         }
       `}</style>
 
       <div className="masc-wrap">
-        <h2 className="masc-title">🐕 Gestión de Mascotas</h2>
+        <div className="masc-modal">
+          <h2>Mis Mascotas</h2>
 
-        {/* ── FORMULARIO ── */}
-        <div className="masc-card">
-          <form onSubmit={guardarMascota}>
-
-            <label>Selecciona al dueño</label>
-            <select
-              className="masc-select"
-              value={idCliente}
-              onChange={(e) => setIdCliente(e.target.value)}
-              required
-            >
-              <option value="">-- Selecciona un dueño --</option>
-              {clientes.map((c) => (
-                <option key={c.id_cliente} value={c.id_cliente}>
-                  {c.nombre_completo} (Tel: {c.telefono})
-                </option>
-              ))}
+          <div className="masc-form-box">
+            <input
+              placeholder="Nombre"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+            />
+            <select value={sexo} onChange={(e) => setSexo(e.target.value)}>
+              <option value="">Sexo</option>
+              <option value="Macho">Macho</option>
+              <option value="Hembra">Hembra</option>
             </select>
-
-            {idCliente && (
-              <>
-                <hr className="masc-divider" />
-
-                <div className="masc-row">
-                  <div>
-                    <label>Nombre de la mascota</label>
-                    <input className="masc-input" placeholder="Ej. Luna" value={nombre} onChange={(e) => setNombre(e.target.value)} required />
-                  </div>
-                  <div>
-                    <label>Especie</label>
-                    <input className="masc-input" placeholder="Ej. Perro" value={especie} onChange={(e) => setEspecie(e.target.value)} required />
-                  </div>
-                  <div>
-                    <label>Raza</label>
-                    <input className="masc-input" placeholder="Ej. Labrador" value={raza} onChange={(e) => setRaza(e.target.value)} />
-                  </div>
-                </div>
-
-                <div className="masc-row">
-                  <div>
-                    <label>Sexo</label>
-                    <input className="masc-input" placeholder="Macho / Hembra" value={sexo} onChange={(e) => setSexo(e.target.value)} />
-                  </div>
-                  <div>
-                    <label>Color</label>
-                    <input className="masc-input" placeholder="Ej. Café" value={color} onChange={(e) => setColor(e.target.value)} />
-                  </div>
-                  <div>
-                    <label>Fecha de nacimiento</label>
-                    <input className="masc-input" type="date" value={fechaNacimiento} onChange={(e) => setFechaNacimiento(e.target.value)} />
-                  </div>
-                </div>
-
-                <button type="submit" className="masc-btn">+ Guardar Paciente</button>
-              </>
-            )}
-          </form>
-        </div>
-
-        {/* ── TABLA DE MASCOTAS ── */}
-        {idCliente && (
-          <div className="masc-card">
-            <p className="masc-table-title">Expedientes asociados al dueño</p>
-            {mascotasDelCliente.length === 0 ? (
-              <p className="masc-empty">Este cliente aún no tiene mascotas registradas.</p>
-            ) : (
-              <table className="masc-table">
-                <thead>
-                  <tr>
-                    <th>Nombre</th>
-                    <th>Especie</th>
-                    <th>Raza</th>
-                    <th>Sexo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mascotasDelCliente.map((m) => (
-                    <tr key={m.id_mascota}>
-                      <td>{m.nombre}</td>
-                      <td>{m.especie}</td>
-                      <td>{m.raza}</td>
-                      <td>{m.sexo}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+            <select value={especie} onChange={(e) => setEspecie(e.target.value)}>
+              <option value="">Especie</option>
+              <option value="Perro">Perro</option>
+              <option value="Gato">Gato</option>
+              <option value="Ave">Ave</option>
+              <option value="Otro">Otro</option>
+            </select>
+            <input
+              placeholder="Raza"
+              value={raza}
+              onChange={(e) => setRaza(e.target.value)}
+            />
+            <p className="masc-date-label">Fecha de nacimiento</p>
+            <input
+              type="date"
+              value={fechaNacimiento}
+              onChange={(e) => setFechaNacimiento(e.target.value)}
+            />
+            <button className="masc-btn-guardar" onClick={guardarMascota}>
+              Guardar Mascota
+            </button>
           </div>
-        )}
+
+          <p className="masc-pets-title">Mis peluditos registrados:</p>
+          {mascotas.length === 0 ? (
+            <p className="masc-empty">No hay mascotas registradas aún.</p>
+          ) : (
+            mascotas.map((m) => (
+              <div key={m.id_mascota} className="masc-pet-item">
+                <strong>{m.nombre} — {m.especie} ({m.raza})</strong>
+                <span>Sexo: {m.sexo} | Nacimiento: {m.fecha_nacimiento}</span>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </>
   );
