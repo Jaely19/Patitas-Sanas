@@ -11,7 +11,7 @@ import AgendarCita from './pages/AgendarCita';
 import PortalCliente from './pages/PortalCliente';
 import { DashVet } from './pages/DashVet';
 import { DashRec } from './pages/DashRec';
-import MisCitas from './pages/Citas'; // 👈 AGREGADO
+import MisCitas from './pages/Citas';
 
 function App() {
   return (
