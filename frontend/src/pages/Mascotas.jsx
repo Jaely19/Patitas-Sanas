@@ -1,38 +1,53 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabase';
 
 function Mascotas() {
   const [mascotas, setMascotas] = useState([]);
   const [nombre, setNombre] = useState('');
   const [especie, setEspecie] = useState('');
-  const [raza, setRaza] = useState('');
-  const [fechaNacimiento, setFechaNacimiento] = useState('');
   const [sexo, setSexo] = useState('');
+  const [edad, setEdad] = useState('');
+  const [idCliente, setIdCliente] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/mascotas')
-      .then((r) => r.json())
-      .then((datos) => setMascotas(datos))
-      .catch((e) => console.error('Error al cargar mascotas:', e));
+    obtenerClienteYMascotas();
   }, []);
 
-  const guardarMascota = async (evento) => {
-    evento.preventDefault();
-    const nuevaMascota = { nombre, especie, raza, fecha_nacimiento: fechaNacimiento, sexo };
-    try {
-      const respuesta = await fetch('http://localhost:4000/api/mascotas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(nuevaMascota),
-      });
-      if (respuesta.ok) {
-        alert('¡Mascota guardada con éxito!');
-        setNombre(''); setEspecie(''); setRaza('');
-        setFechaNacimiento(''); setSexo('');
-        fetch('http://localhost:4000/api/mascotas')
-          .then((r) => r.json())
-          .then((datos) => setMascotas(datos));
-      }
-    } catch (e) { console.error('Error al guardar mascota:', e); }
+  const obtenerClienteYMascotas = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return navigate('/login');
+
+    const { data: cliente } = await supabase
+      .from('clientes')
+      .select('id_cliente')
+      .eq('correo', session.user.email)
+      .single();
+
+    if (cliente) {
+      setIdCliente(cliente.id_cliente);
+      const { data: mascotasData } = await supabase
+        .from('mascotas')
+        .select('*')
+        .eq('id_cliente', cliente.id_cliente);
+      setMascotas(mascotasData || []);
+    }
+  };
+
+  const guardarMascota = async () => {
+    if (!nombre || !especie) return alert('Nombre y especie son obligatorios');
+    const { error } = await supabase.from('mascotas').insert({
+      id_cliente: idCliente,
+      nombre,
+      especie,
+      sexo,
+      edad: edad ? parseInt(edad) : null,
+    });
+    if (error) { console.error(error); return alert('Error al guardar'); }
+    alert('¡Mascota guardada!');
+    setNombre(''); setEspecie(''); setSexo(''); setEdad('');
+    obtenerClienteYMascotas();
   };
 
   return (
@@ -46,7 +61,7 @@ function Mascotas() {
           flex-direction: column;
           align-items: center;
           padding: 40px 20px;
-          min-height: 100%;
+          min-height: 100vh;
           background: #f0f2f8;
         }
 
@@ -93,14 +108,6 @@ function Mascotas() {
         .masc-form-box input:focus,
         .masc-form-box select:focus { border-color: #4a90d9; }
         .masc-form-box input::placeholder { color: #bbb; }
-        .masc-form-box input[type="date"] { color: #333; }
-
-        .masc-date-label {
-          font-size: 0.8rem;
-          color: #999;
-          margin-bottom: -6px;
-          padding-left: 2px;
-        }
 
         .masc-btn-guardar {
           background: #4a90d9;
@@ -150,6 +157,19 @@ function Mascotas() {
           font-size: 0.9rem;
           padding: 10px 0;
         }
+
+        .masc-volver {
+          margin-top: 24px;
+          background: none;
+          border: none;
+          color: #1a2a6c;
+          font-family: 'Nunito', sans-serif;
+          font-size: 0.95rem;
+          font-weight: 700;
+          cursor: pointer;
+          text-decoration: underline;
+        }
+        .masc-volver:hover { opacity: 0.7; }
       `}</style>
 
       <div className="masc-wrap">
@@ -175,15 +195,10 @@ function Mascotas() {
               <option value="Otro">Otro</option>
             </select>
             <input
-              placeholder="Raza"
-              value={raza}
-              onChange={(e) => setRaza(e.target.value)}
-            />
-            <p className="masc-date-label">Fecha de nacimiento</p>
-            <input
-              type="date"
-              value={fechaNacimiento}
-              onChange={(e) => setFechaNacimiento(e.target.value)}
+              placeholder="Edad (años)"
+              type="number"
+              value={edad}
+              onChange={(e) => setEdad(e.target.value)}
             />
             <button className="masc-btn-guardar" onClick={guardarMascota}>
               Guardar Mascota
@@ -196,12 +211,16 @@ function Mascotas() {
           ) : (
             mascotas.map((m) => (
               <div key={m.id_mascota} className="masc-pet-item">
-                <strong>{m.nombre} — {m.especie} ({m.raza})</strong>
-                <span>Sexo: {m.sexo} | Nacimiento: {m.fecha_nacimiento}</span>
+                <strong>{m.nombre} — {m.especie}</strong>
+                <span>Sexo: {m.sexo || 'N/A'} | Edad: {m.edad ? m.edad + ' años' : 'N/A'}</span>
               </div>
             ))
           )}
         </div>
+
+        <button className="masc-volver" onClick={() => navigate('/portal-cliente')}>
+          ← Volver al Portal
+        </button>
       </div>
     </>
   );
