@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Inicio from './pages/Inicio';
 import Login from './Login';
 import Clientes from './pages/Clientes';
-import Mascotas from './pages/Mascotas';
+import MisMascotas from './pages/MisMascotas';
 import Citas from './pages/Citas';
 import Recepcion from './pages/Recepcion'; 
 import Medico from './pages/Medico'; 
@@ -22,6 +22,7 @@ function App() {
         
         <Route path="/portal-cliente" element={<PortalCliente />} />
         <Route path="/mis-citas" element={<MisCitas />} /> {/* 👈 AGREGADO */}
+        <Route path="/mis-mascotas" element={<MisMascotas />} />
 
         {/* === RUTA DE LOGIN === */}
         <Route path="/login" element={<Login />} />
