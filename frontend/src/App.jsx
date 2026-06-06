@@ -24,6 +24,7 @@ function App() {
         <Route path="/agendar-cita" element={<AgendarCita />} />
         <Route path="/panel-vet" element={<Medico />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/mascotas" element={<Mascotas />} />
 
         <Route path="/*" element={
           <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'Arial, sans-serif' }}>
@@ -52,7 +53,6 @@ function App() {
               <Routes>
                 <Route path="/recepcion" element={<Recepcion />} />
                 <Route path="/clientes" element={<Clientes />} />
-                <Route path="/mascotas" element={<Mascotas />} />
                 <Route path="/citas" element={<Citas />} />
               </Routes>
             </main>
