@@ -4,7 +4,6 @@ import { supabase } from '../supabase';
 import './Login.css'; 
 
 function Login() {
-  const [modo, setModo] = useState('cliente');
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,7 +14,6 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const emailLimpio = email.trim();
 
     // ==========================================
@@ -34,53 +32,63 @@ function Login() {
 
     setCargando(true);
     try {
-      if (modo === 'cliente') {
-        if (isLogin) {
-          const { error } = await supabase.auth.signInWithPassword({ email: emailLimpio, password });
-          if (error) throw error;
-          navigate('/portal-cliente');
-        } else {
-          if (!nombreCompleto) {
-            alert('Por favor ingresa tu nombre completo.');
-            setCargando(false);
-            return;
-          }
-          const { error: errorAuth } = await supabase.auth.signUp({ email: emailLimpio, password });
-          if (errorAuth) throw errorAuth;
-          const { error: errorCliente } = await supabase
-            .from('clientes')
-            .insert([{ nombre_completo: nombreCompleto, telefono: telefono || null, email: emailLimpio }]);
-          if (errorCliente) throw errorCliente;
-          alert('¡Cuenta creada! Ahora agenda tu primera cita.');
-          navigate('/agendar-cita');
+      if (!isLogin) {
+        // FLUJO DE REGISTRO (Por defecto, quien se registra es un Cliente)
+        if (!nombreCompleto) {
+          alert('Por favor ingresa tu nombre completo.');
+          setCargando(false);
+          return;
         }
-      } else if (modo === 'veterinario') {
+        
+        // 1. Crear usuario en la autenticación de Supabase
+        const { error: errorAuth } = await supabase.auth.signUp({ email: emailLimpio, password });
+        if (errorAuth) throw errorAuth;
+        
+        // 2. Guardar sus datos en la tabla de clientes
+        const { error: errorCliente } = await supabase
+          .from('clientes')
+          .insert([{ nombre_completo: nombreCompleto, telefono: telefono || null, email: emailLimpio }]);
+        if (errorCliente) throw errorCliente;
+        
+        alert('¡Cuenta creada! Ahora agenda tu primera cita.');
+        navigate('/agendar-cita');
+
+      } else {
+        // FLUJO DE INICIO DE SESIÓN UNIFICADO
+        // 1. Iniciar sesión en Supabase
         const { error } = await supabase.auth.signInWithPassword({ email: emailLimpio, password });
         if (error) throw error;
-        const { data: emp } = await supabase
+
+        // 2. ¿Es Veterinario?
+        const { data: vet } = await supabase
           .from('veterinarios')
           .select('*')
           .eq('email', emailLimpio)
-          .single();
-        if (!emp) {
-          await supabase.auth.signOut();
-          throw new Error('No tienes acceso como veterinario.');
+          .maybeSingle(); // maybeSingle evita errores si no lo encuentra
+
+        if (vet) {
+          navigate('/panel-vet');
+          return;
         }
-        navigate('/panel-vet');
-      } else if (modo === 'administrador') {
-        const { error } = await supabase.auth.signInWithPassword({ email: emailLimpio, password });
-        if (error) throw error;
-        const { data: emp } = await supabase
+
+        // 3. ¿Es Recepcionista o Administrador?
+        const { data: rec } = await supabase
           .from('recepcionistas')
           .select('*')
           .eq('email', emailLimpio)
-          .eq('rol', 'Administrador')
-          .single();
-        if (!emp) {
-          await supabase.auth.signOut();
-          throw new Error('No tienes acceso como administrador.');
+          .maybeSingle();
+
+        if (rec) {
+          if (rec.rol === 'Administrador') {
+            navigate('/admin');
+          } else {
+            navigate('/recepcion');
+          }
+          return;
         }
-        navigate('/admin');
+
+        // 4. Si no está en empleados, asumimos que es Cliente
+        navigate('/portal-cliente');
       }
     } catch (error) {
       alert(`Error: ${error.message}`);
@@ -94,51 +102,64 @@ function Login() {
       <div className="login-card">
         <h2>Portal de Acceso</h2>
 
-        <div className="rol-selector">
-          <button className={modo === 'cliente' ? 'rol-btn active-cliente' : 'rol-btn'} onClick={() => { setModo('cliente'); setIsLogin(true); }}>
-            🐾 Cliente
+        <div className="tabs">
+          <button className={isLogin ? 'active' : ''} onClick={() => setIsLogin(true)}>
+            Iniciar Sesión
           </button>
-          <button className={modo === 'veterinario' ? 'rol-btn active-vet' : 'rol-btn'} onClick={() => { setModo('veterinario'); setIsLogin(true); }}>
-            🩺 Veterinario
-          </button>
-          <button className={modo === 'administrador' ? 'rol-btn active-admin' : 'rol-btn'} onClick={() => { setModo('administrador'); setIsLogin(true); }}>
-            ⚙️ Administrador
+          <button className={!isLogin ? 'active' : ''} onClick={() => setIsLogin(false)}>
+            Registrarse
           </button>
         </div>
 
-        {modo === 'cliente' && (
-          <div className="tabs">
-            <button className={isLogin ? 'active' : ''} onClick={() => setIsLogin(true)}>Iniciar Sesión</button>
-            <button className={!isLogin ? 'active' : ''} onClick={() => setIsLogin(false)}>Registrarse</button>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="login-form">
-          {modo === 'cliente' && !isLogin && (
+          {!isLogin && (
             <>
               <div className="input-group">
                 <label>Nombre Completo *</label>
-                <input type="text" placeholder="Tu nombre completo" value={nombreCompleto} onChange={(e) => setNombreCompleto(e.target.value)} required />
+                <input 
+                  type="text" 
+                  placeholder="Tu nombre completo" 
+                  value={nombreCompleto} 
+                  onChange={(e) => setNombreCompleto(e.target.value)} 
+                  required 
+                />
               </div>
               <div className="input-group">
                 <label>Teléfono (opcional)</label>
-                <input type="tel" placeholder="10 dígitos" value={telefono} onChange={(e) => setTelefono(e.target.value)} />
+                <input 
+                  type="tel" 
+                  placeholder="10 dígitos" 
+                  value={telefono} 
+                  onChange={(e) => setTelefono(e.target.value)} 
+                />
               </div>
             </>
           )}
 
           <div className="input-group">
             <label>Correo Electrónico</label>
-            <input type="email" placeholder="ejemplo@correo.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <input 
+              type="email" 
+              placeholder="ejemplo@correo.com" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              required 
+            />
           </div>
 
           <div className="input-group">
             <label>Contraseña</label>
-            <input type="password" placeholder="Tu contraseña" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <input 
+              type="password" 
+              placeholder="Tu contraseña" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+            />
           </div>
 
-          <button type="submit" className={`btn-submit btn-${modo}`} disabled={cargando}>
-            {cargando ? 'Cargando...' : 'Entrar'}
+          <button type="submit" className="btn-submit" disabled={cargando}>
+            {cargando ? 'Cargando...' : (isLogin ? 'Entrar' : 'Crear Cuenta')}
           </button>
         </form>
 
