@@ -1,207 +1,266 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
-import { Link } from 'react-router-dom';
-import './Recepcion.css';
+import './DashRec.css'; 
 
-function Recepcion() {
-  const [ingresos, setIngresos] = useState(1250);
-  const [atendidas, setAtendidas] = useState(2);
-  const [citas, setCitas] = useState([
-    { id: 1, hora: '11:00 AM', mascota: 'Toby', motivo: 'Consulta General', doctor: 'Dr. Alejandro', status: 'Finalizada', cobrado: true, precio: 0 },
-    { id: 2, hora: '12:00 PM', mascota: 'Mika', motivo: 'Limpieza Dental', doctor: 'Dr. Alejandro', status: 'En recuperación', cobrado: false, precio: 850 },
-    { id: 3, hora: '01:00 PM', disponible: true, horaTexto: '01:00 PM' },
-    { id: 4, hora: '01:30 PM', mascota: 'Firulais', motivo: 'Vacunación', doctor: 'Dr. Alejandro', status: 'En consultorio', cobrado: false, precio: 450 },
-    { id: 5, hora: '02:30 PM', disponible: true, horaTexto: '02:30 PM' }
-  ]);
+export const Recepcion = () => {
+  const navigate = useNavigate();
 
-  // CARGAR CITAS REALES DIRECTAMENTE DESDE SUPABASE EN LA NUBE
+  // 1. NUEVO: Estado para controlar la fecha del calendario (Inicia con el día de hoy)
+  const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date().toISOString().split('T')[0]);
+  
+  const [agenda, setAgenda] = useState([]);
+  const [ingresosTotales, setIngresosTotales] = useState(0);
+  const [citasAtendidas, setCitasAtendidas] = useState(0);
+  const [cargando, setCargando] = useState(true);
+
+  // 2. NUEVO: El useEffect ahora "escucha" la fechaSeleccionada. 
+  // Si la cambias, vuelve a buscar los datos automáticamente.
   useEffect(() => {
-    const obtenerCitasDesdeNube = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('citas')
-          .select(`
-            id_cita,
-            fecha_hora,
-            motivo,
-            mascotas (
-              nombre,
-              clientes ( nombre_completo )
-            ),
-            veterinarios ( nombre_completo )
-          `)
-          .order('fecha_hora', { ascending: true });
+    fetchCitasPorFecha(fechaSeleccionada);
+  }, [fechaSeleccionada]);
 
-        if (error) throw error;
+  const fetchCitasPorFecha = async (fecha) => {
+    setCargando(true);
+    try {
+      const { data, error } = await supabase
+        .from('citas')
+        .select('*, mascotas(nombre), veterinarios(nombre_completo)')
+        .gte('fecha_hora', `${fecha}T00:00:00`)
+        .lte('fecha_hora', `${fecha}T23:59:59`)
+        .order('fecha_hora', { ascending: true });
 
-        if (data) {
-          const citasFormateadas = data.map(c => {
-            const horaStr = new Date(c.fecha_hora).toLocaleTimeString('es-MX', { 
-              hour: '2-digit', 
-              minute: '2-digit' 
-            });
-            
-            return {
-              id: `supa-${c.id_cita}`,
-              hora: horaStr,
-              mascota: c.mascotas?.nombre || 'Desconocido',
-              motivo: c.motivo,
-              doctor: c.veterinarios ? `Dr. ${c.veterinarios.nombre_completo}` : 'Por asignar',
-              status: 'Agendada en la Nube',
-              cobrado: false,
-              precio: 350
-            };
-          });
+      if (error) throw error;
 
-          setCitas(prev => {
-            const estaticas = prev.filter(c => typeof c.id === 'number');
-            return [...estaticas, ...citasFormateadas];
-          });
-        }
-      } catch (err) {
-        console.error('Error al conectar con Supabase:', err.message);
+      if (data) {
+        const citasFormateadas = data.map(cita => {
+          const fechaObj = new Date(cita.fecha_hora);
+          const horaFormateada = fechaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+          return {
+            id_cita: cita.id_cita,
+            time: horaFormateada,
+            isAvailable: false, 
+            isPaid: cita.estado === 'Completada', 
+            name: cita.mascotas?.nombre || 'Mascota',
+            type: cita.motivo,
+            details: `${cita.veterinarios?.nombre_completo || 'Asignado'} | Status: ${cita.estado}`,
+            monto: cita.monto || null 
+          };
+        });
+        setAgenda(citasFormateadas);
+        calcularEstadisticas(citasFormateadas);
       }
-    };
-
-    obtenerCitasDesdeNube();
-  }, []);
-
-  const handleCobrar = (id, monto) => {
-    setIngresos(prev => prev + monto);
-    setAtendidas(prev => prev + 1);
-    setCitas(prev => prev.map(c => c.id === id ? { ...c, cobrado: true } : c));
-    alert(`¡Cobro exitoso! Se añadieron $${monto} a la caja de hoy.`);
-  };
-
-  const handleAsignarRapido = (id) => {
-    const nombreMascota = prompt("Ingresa el nombre de la mascota:");
-    const motivoCita = prompt("Ingresa el motivo (Ej. Urgencia leve):");
-
-    if (nombreMascota && motivoCita) {
-      setCitas(prev => prev.map(c => c.id === id ? {
-        ...c,
-        disponible: false,
-        mascota: nombreMascota,
-        motivo: motivoCita,
-        doctor: 'Por asignar médico',
-        status: 'En Sala de Espera',
-        cobrado: false,
-        precio: 350
-      } : c));
+    } catch (error) {
+      console.error('Error al cargar las citas:', error.message);
+    } finally {
+      setCargando(false);
     }
   };
 
+  const calcularEstadisticas = (citas) => {
+    let total = 0;
+    let atendidas = 0;
+    citas.forEach(cita => {
+      if (cita.isPaid && cita.monto) {
+        total += Number(cita.monto);
+        atendidas += 1;
+      }
+    });
+    setIngresosTotales(total);
+    setCitasAtendidas(atendidas);
+  };
+
+  const handleCobrar = async (id_cita, montoActual) => {
+    try {
+      let montoACobrar = montoActual;
+      if (!montoACobrar) {
+        const inputMonto = window.prompt("Ingresa el monto a cobrar (Ej. 350):");
+        if (!inputMonto || isNaN(inputMonto) || Number(inputMonto) <= 0) {
+          alert("Debes ingresar un monto numérico mayor a 0.");
+          return;
+        }
+        montoACobrar = Number(inputMonto);
+      }
+      const { error } = await supabase
+        .from('citas')
+        .update({ estado: 'Completada', monto: montoACobrar })
+        .eq('id_cita', id_cita); 
+
+      if (error) throw error;
+      alert(`Pago de $${montoACobrar} registrado exitosamente en caja.`);
+      // Volvemos a cargar las citas de la fecha que esté seleccionada
+      fetchCitasPorFecha(fechaSeleccionada); 
+    } catch (error) {
+      alert(`Error al registrar el cobro: ${error.message}`);
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/login');
+  };
+
+  const opcionesFecha = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const fechaHoyStr = new Date().toLocaleDateString('es-MX', opcionesFecha);
+
+  // Para saber si el usuario está viendo hoy u otro día
+  const esHoy = fechaSeleccionada === new Date().toISOString().split('T')[0];
+
   return (
-    <div className="recepcion-wrapper">
-      <div className="header-main">
-        <div>
-          <h1>Panel Operativo de Recepción</h1>
-          <p>Control de Caja, Turnos y Almacén de Suministros</p>
-        </div>
-      </div>
+    <div className="rec-wrapper">
+      <aside className="rec-sidebar">
+        <h2>Patitas<span>Sanas</span></h2>
+        <ul className="rec-nav-menu">
+          <li><a href="#" className="active">📅 Agenda y Caja</a></li>
+          <li>
+            <a 
+              href="#" 
+              onClick={(e) => { 
+                e.preventDefault(); 
+                navigate('/agendar-cita', { state: { origen: 'recepcion' } }); 
+              }}
+            >
+              ➕ Nueva Cita
+            </a>
+          </li>
+          <li><a href="#">🐕 Expedientes</a></li>
+          <li><a href="#">📦 Inventario</a></li>
+        </ul>
+      </aside>
 
-      {/* MÉTRICAS EN TIEMPO REAL */}
-      <div className="stats-grid">
-        <div className="stat-card green">
-          <h4>Ingresos del Día</h4>
-          <div className="value">$ {ingresos.toLocaleString('en-US')}.00</div>
-        </div>
-        <div className="stat-card">
-          <h4>Citas Atendidas</h4>
-          <div className="value">{atendidas}</div>
-        </div>
-        <div className="stat-card orange">
-          <h4>En Sala de Espera</h4>
-          <div className="value">1</div>
-        </div>
-        <div className="stat-card red">
-          <h4>Alertas de Stock</h4>
-          <div className="value">3</div>
-        </div>
-      </div>
-
-      <div className="panels-grid">
-        {/* COLUMNA GESTIÓN DE CITAS */}
-        <div className="panel">
-          <div className="panel-header">
-            <h2>Monitoreo de Consultorios</h2>
-            <Link to="/citas">
-              <button className="btn-action btn-add">+ Agendar Turno</button>
-            </Link>
+      <main className="rec-main-content">
+        
+        {/* CABECERA */}
+        <div className="rec-header-main">
+          <div>
+            <h1>Panel de Recepción</h1>
+            <p style={{ textTransform: 'capitalize' }}>{fechaHoyStr} | Turno General</p>
           </div>
+          <button onClick={handleLogout} className="btn-logout">Cerrar Sesión</button>
+        </div>
 
-          <div className="agenda-list">
-            {citas.map((cita) => {
-              if (cita.disponible) {
-                return (
-                  <div key={cita.id} className="agenda-item available">
-                    <div className="time">{cita.horaTexto}</div>
-                    <div className="details">
-                      <h4 style={{ color: '#27ae60' }}>¡Espacio Libre!</h4>
-                      <p>Disponible para ingreso directo presencial.</p>
+        {/* 1. CONTROL DE CAJA Y ESTADÍSTICAS */}
+        {/* Cambié los títulos para que sean dinámicos dependiendo si ves "hoy" u otra fecha */}
+        <div className="stats-grid">
+          <div className="stat-card green">
+            <h4>{esHoy ? 'INGRESOS DEL DÍA' : 'INGRESOS DE LA FECHA'}</h4>
+            <div className="value">$ {ingresosTotales.toLocaleString('en-US')}.00</div>
+          </div>
+          <div className="stat-card">
+            <h4>CITAS COBRADAS</h4>
+            <div className="value">{citasAtendidas}</div>
+          </div>
+          <div className="stat-card orange">
+            <h4>CITAS AGENDADAS</h4>
+            <div className="value">{agenda.length}</div>
+          </div>
+          <div className="stat-card red">
+            <h4>ALERTAS DE STOCK</h4>
+            <div className="value">3</div>
+          </div>
+        </div>
+
+        {/* CONTENEDOR DE DOS COLUMNAS */}
+        <div className="panels-grid">
+          
+          {/* 2. CONTROL DE CITAS (Izquierda) */}
+          <div className="panel">
+            <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <h2 style={{ margin: 0 }}>Gestión de Citas</h2>
+                {/* 3. NUEVO: El calendario interactivo */}
+                <input 
+                  type="date" 
+                  value={fechaSeleccionada}
+                  onChange={(e) => setFechaSeleccionada(e.target.value)}
+                  style={{ 
+                    padding: '8px 12px', 
+                    borderRadius: '5px', 
+                    border: '1px solid #ccc', 
+                    color: 'var(--primary)', 
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+              <button className="btn-action btn-add" onClick={() => navigate('/agendar-cita', { state: { origen: 'recepcion' } })}>+ Agendar Turno</button>
+            </div>
+
+            <div className="agenda-list">
+              {cargando ? (
+                 <p style={{ color: 'gray', padding: '20px', textAlign: 'center' }}>Cargando agenda...</p>
+              ) : agenda.length === 0 ? (
+                <p style={{ color: 'gray', padding: '20px', textAlign: 'center' }}>No hay citas agendadas para esta fecha en la base de datos.</p>
+              ) : (
+                agenda.map((cita) => (
+                  <div key={cita.id_cita} className="agenda-item">
+                    <div className="time">{cita.time}</div>
+                    
+                    <div className="details" style={{ flex: 1, padding: '0 15px' }}>
+                      <h4>{cita.name} <span style={{ fontWeight: 'normal', color: '#666', fontSize: '0.9rem' }}>({cita.type})</span></h4>
+                      <p>{cita.details}</p>
                     </div>
-                    <button className="btn-action btn-add" onClick={() => handleAsignarRapido(cita.id)}>Asignar Lugar</button>
-                  </div>
-                );
-              }
 
-              return (
-                <div key={cita.id} className="agenda-item">
-                  <div className="time">{cita.hora}</div>
-                  <div className="details">
-                    <h4>{cita.mascota} ({cita.motivo})</h4>
-                    <p>{cita.doctor} | Estatus: <strong>{cita.status}</strong></p>
+                    {cita.isPaid ? (
+                      <button className="btn-action btn-paid" disabled>
+                        Cobrado
+                      </button>
+                    ) : (
+                      <button 
+                        className="btn-action btn-pay"
+                        onClick={() => handleCobrar(cita.id_cita, cita.monto)}
+                      >
+                        Cobrar {cita.monto ? `$${cita.monto}` : ''}
+                      </button>
+                    )}
                   </div>
-                  {cita.cobrado ? (
-                    <button className="btn-action btn-paid" disabled>✓ Cobrado</button>
-                  ) : (
-                    <button className="btn-action btn-pay" onClick={() => handleCobrar(cita.id, cita.precio)}>
-                      Cobrar ${cita.precio}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* 3. CONTROL DE INVENTARIO (Derecha) */}
+          <div className="panel">
+            <h2>Faltantes y Material</h2>
+            
+            <h3>Medicamentos</h3>
+            <div className="alert-item">
+              <span>Vacuna Múltiple</span>
+              <span className="stock-low">2 Dosis restantes</span>
+            </div>
+            <div className="alert-item">
+              <span>Desparasitante</span>
+              <span className="stock-ok">5 Tabletas</span>
+            </div>
+            <div className="alert-item">
+              <span>Meloxicam</span>
+              <span className="stock-low">Agotado</span>
+            </div>
+
+            <h3 style={{ marginTop: '25px' }}>Material de Curación</h3>
+            <div className="alert-item">
+              <span>Jeringas 3ml</span>
+              <span className="stock-low">10 pzas</span>
+            </div>
+            <div className="alert-item">
+              <span>Gasas Estériles</span>
+              <span className="stock-ok">1 Paquete</span>
+            </div>
+            
+            <button 
+              style={{ width: '100%', marginTop: '25px', background: 'var(--primary)', color: 'white', border: 'none', padding: '10px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }} 
+              onClick={() => window.alert('Esta función se conectará a la base de datos de inventario pronto.')}
+            >
+              Generar Pedido de Surtido
+            </button>
           </div>
         </div>
 
-        {/* COLUMNA MATERIALES */}
-        <div className="panel">
-          <div className="panel-header">
-            <h2>Inventario & Faltantes</h2>
-          </div>
-          
-          <h3>Medicamentos</h3>
-          <div className="alert-item">
-            <span>Vacuna Múltiple (Sextuple)</span>
-            <span className="stock-low">2 Dosis restantes</span>
-          </div>
-          <div className="alert-item">
-            <span>Desparasitante (Drontal)</span>
-            <span className="stock-ok">5 Tabletas</span>
-          </div>
-          <div className="alert-item">
-            <span>Meloxicam (Analgésico)</span>
-            <span className="stock-low">Agotado</span>
-          </div>
-
-          <h3 style={{ marginTop: '25px' }}>Material de Curación</h3>
-          <div className="alert-item">
-            <span>Jeringas 3ml</span>
-            <span className="stock-low">10 pzas</span>
-          </div>
-          <div className="alert-item">
-            <span>Gasas Estériles</span>
-            <span className="stock-ok">1 Paquete</span>
-          </div>
-          
-          <button className="btn-action" style={{ width: '100%', marginTop: '25px', backgroundColor: '#012b81' }} onClick={() => alert('Generando orden de reabastecimiento en formato digital...')}>
-            Generar Pedido Suministros
-          </button>
-        </div>
-      </div>
+      </main>
     </div>
   );
-}
+};
 
 export default Recepcion;

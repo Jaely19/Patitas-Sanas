@@ -41,13 +41,24 @@ function Login() {
         }
         
         // 1. Crear usuario en la autenticación de Supabase
-        const { error: errorAuth } = await supabase.auth.signUp({ email: emailLimpio, password });
+        // Esto genera la cuenta y nos devuelve la "data" con el ID del usuario
+        const { data: authData, error: errorAuth } = await supabase.auth.signUp({ 
+          email: emailLimpio, 
+          password 
+        });
+        
         if (errorAuth) throw errorAuth;
         
-        // 2. Guardar sus datos en la tabla de clientes
+        // 2. Guardar sus datos en tu tabla 'clientes' usando LOS NOMBRES EXACTOS DE TUS COLUMNAS
         const { error: errorCliente } = await supabase
           .from('clientes')
-          .insert([{ nombre_completo: nombreCompleto, telefono: telefono || null, email: emailLimpio }]);
+          .insert([{ 
+            nombre_completo: nombreCompleto, 
+            telefono: telefono || null, 
+            correo: emailLimpio, // <--- ¡AQUÍ ESTÁ LA CORRECCIÓN CLAVE!
+            user_id: authData.user.id // <--- Conectamos el cliente con su cuenta de Supabase
+          }]);
+          
         if (errorCliente) throw errorCliente;
         
         alert('¡Cuenta creada! Ahora agenda tu primera cita.');

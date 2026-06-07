@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+// 👈 Agregamos useLocation
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../supabase';
 import './AgendarCita.css';
 
 function AgendarCita() {
   const navigate = useNavigate();
+  const location = useLocation(); // 👈 Leemos cómo llegó el usuario aquí
   
+  // 👈 Detectamos si viene del panel de recepción (si no, asumimos que es un cliente)
+  const origen = location.state?.origen || 'cliente'; 
+
   const fechaActual = new Date();
   const mesActual = fechaActual.getMonth(); 
   const anioActual = fechaActual.getFullYear();
@@ -44,25 +49,29 @@ function AgendarCita() {
     setGuardando(true);
 
     try {
-      // Obtener correo del usuario logueado
-      const { data: { session } } = await supabase.auth.getSession();
-      const correoUsuario = session?.user?.email || null;
-
-      // Buscar si ya existe cliente con ese correo
       let idCliente = null;
-      if (correoUsuario) {
-        const { data: clienteExistente } = await supabase
-          .from('clientes')
-          .select('id_cliente')
-          .eq('correo', correoUsuario)
-          .maybeSingle();
+      let correoParaCliente = null;
 
-        if (clienteExistente) {
-          idCliente = clienteExistente.id_cliente;
+      // 👈 LOGICA INTELIGENTE: Si es un cliente agendando desde su casa, usamos su correo.
+      // Si es la recepcionista, NO usamos su sesión, dejamos el correo en nulo por ahora.
+      if (origen === 'cliente') {
+        const { data: { session } } = await supabase.auth.getSession();
+        correoParaCliente = session?.user?.email || null;
+
+        if (correoParaCliente) {
+          const { data: clienteExistente } = await supabase
+            .from('clientes')
+            .select('id_cliente')
+            .eq('correo', correoParaCliente)
+            .maybeSingle();
+
+          if (clienteExistente) {
+            idCliente = clienteExistente.id_cliente;
+          }
         }
       }
 
-      // Si no existe, crear cliente nuevo CON correo
+      // Si no hay idCliente (es un cliente nuevo o lo está registrando la recepcionista)
       if (!idCliente) {
         const { data: clienteInsertado, error: errorCliente } = await supabase
           .from('clientes')
@@ -70,7 +79,7 @@ function AgendarCita() {
             nombre_completo: nombreDueño, 
             telefono: telefono, 
             direccion: direccion,
-            correo: correoUsuario // 👈 guarda el correo
+            correo: correoParaCliente 
           }])
           .select()
           .single();
@@ -112,7 +121,13 @@ function AgendarCita() {
       if (errorCita) throw errorCita;
 
       alert(`¡Cita Agendada!\n\nPaciente: ${nombreMascota}\nFecha: ${diaSeleccionado} de ${meses[mesActual]} a las ${horaSeleccionada}`);
-      navigate('/mis-citas'); // 👈 redirige a Mis Citas
+      
+      // 👈 REDIRECCIÓN INTELIGENTE: Regresa al usuario a donde pertenece
+      if (origen === 'recepcion') {
+        navigate('/recepcion');
+      } else {
+        navigate('/mis-citas'); 
+      }
 
     } catch (err) {
       alert('Hubo un error al guardar la reservación.');
@@ -158,8 +173,13 @@ function AgendarCita() {
   return (
     <div className="agendar-wrapper">
       <div className="container">
-        <Link to="/portal-cliente" style={{ color: '#012b81', textDecoration: 'none', fontWeight: 'bold', marginBottom: '20px', display: 'inline-block' }}>
-          ← Cancelar y volver al Portal
+        
+        {/* 👈 BOTÓN DE RETROCESO INTELIGENTE */}
+        <Link 
+          to={origen === 'recepcion' ? '/recepcion' : '/portal-cliente'} 
+          style={{ color: '#012b81', textDecoration: 'none', fontWeight: 'bold', marginBottom: '20px', display: 'inline-block' }}
+        >
+          ← Cancelar y volver {origen === 'recepcion' ? 'al Panel' : 'al Portal'}
         </Link>
         
         <div className="appointment-card">

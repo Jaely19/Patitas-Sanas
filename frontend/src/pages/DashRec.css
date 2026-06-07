@@ -57,11 +57,21 @@
 .stat-card h4 { font-size: 0.85rem; color: #666; text-transform: uppercase; margin-bottom: 5px; }
 .stat-card .value { font-size: 2rem; font-weight: 700; color: var(--text); }
 
-/* ================= LAYOUT DE PANELES ================= */
-.panels-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
-.panel { background: var(--white); padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.panel-header h2 { margin: 0; font-family: 'IBM Plex Sans', sans-serif; color: var(--primary); }
+.panels-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* 2 partes para citas, 1 parte para inventario */
+  gap: 20px;
+  margin-top: 20px;
+  align-items: start; /* Para que no se estiren a lo alto de forma rara */
+}
+
+/* Y asegurémonos de que el panel tenga su fondo blanco y sombra */
+.panel {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
 
 /* ================= AGENDA ================= */
 .agenda-list { display: flex; flex-direction: column; gap: 15px; }
