@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Inicio from './pages/Inicio';
 import Login from './pages/Login';
-import Clientes from './pages/Clientes';
 import Mascotas from './pages/Mascotas';
 import Citas from './pages/Citas';
 import Recepcion from './pages/Recepcion'; 
@@ -35,9 +34,6 @@ function App() {
                   <Link to="/recepcion" style={{ color: 'white', textDecoration: 'none', fontSize: '18px', display: 'block', padding: '10px', backgroundColor: '#012b81', borderRadius: '5px', fontWeight: 'bold' }}>📅 Agenda y Caja</Link>
                 </li>
                 <li style={{ margin: '20px 0' }}>
-                  <Link to="/clientes" style={{ color: 'white', textDecoration: 'none', fontSize: '18px', display: 'block', padding: '10px', backgroundColor: '#333', borderRadius: '5px' }}>👥 Dueños</Link>
-                </li>
-                <li style={{ margin: '20px 0' }}>
                   <Link to="/mis-mascotas" style={{ color: 'white', textDecoration: 'none', fontSize: '18px', display: 'block', padding: '10px', backgroundColor: '#333', borderRadius: '5px' }}>🐕 Mascotas</Link>
                 </li>
                 <li style={{ margin: '20px 0' }}>
@@ -52,7 +48,6 @@ function App() {
             <main style={{ flex: 1, backgroundColor: '#242424', height: '100vh', overflowY: 'auto' }}>
               <Routes>
                 <Route path="/recepcion" element={<Recepcion />} />
-                <Route path="/clientes" element={<Clientes />} />
                 <Route path="/citas" element={<Citas />} />
               </Routes>
             </main>
