@@ -117,9 +117,9 @@ Correo: admin@patitassanas.com
 Contraseña: Admin1234
 
 ### 🔗 Enlaces
-Código Fuente: [Repositorio GitHub](https://github.com/Jaely19/Patitas-Sanas)
-Demo en Vivo: [Patitas Sanas Web](https://patitas-sanas.vercel.app)
-Repositorio central, visitalo en la siguiente liga: https://github.com/gabrielhuav/DB-Coursework-2026-2
+* Código Fuente: [Repositorio GitHub](https://github.com/Jaely19/Patitas-Sanas)
+* Demo en Vivo: [Patitas Sanas Web](https://patitas-sanas.vercel.app)
+* Repositorio central, visitalo en la siguiente liga: https://github.com/gabrielhuav/DB-Coursework-2026-2
 
 
 
