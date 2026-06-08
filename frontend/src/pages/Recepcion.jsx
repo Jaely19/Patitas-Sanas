@@ -6,16 +6,12 @@ import './DashRec.css';
 export const Recepcion = () => {
   const navigate = useNavigate();
 
-  // 1. NUEVO: Estado para controlar la fecha del calendario (Inicia con el día de hoy)
   const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date().toISOString().split('T')[0]);
-  
   const [agenda, setAgenda] = useState([]);
   const [ingresosTotales, setIngresosTotales] = useState(0);
   const [citasAtendidas, setCitasAtendidas] = useState(0);
   const [cargando, setCargando] = useState(true);
 
-  // 2. NUEVO: El useEffect ahora "escucha" la fechaSeleccionada. 
-  // Si la cambias, vuelve a buscar los datos automáticamente.
   useEffect(() => {
     fetchCitasPorFecha(fechaSeleccionada);
   }, [fechaSeleccionada]);
@@ -42,6 +38,7 @@ export const Recepcion = () => {
             time: horaFormateada,
             isAvailable: false, 
             isPaid: cita.estado === 'Completada', 
+            isCancelled: cita.estado === 'Cancelada', // NUEVO: Identificamos si está cancelada
             name: cita.mascotas?.nombre || 'Mascota',
             type: cita.motivo,
             details: `${cita.veterinarios?.nombre_completo || 'Asignado'} | Status: ${cita.estado}`,
@@ -89,10 +86,29 @@ export const Recepcion = () => {
 
       if (error) throw error;
       alert(`Pago de $${montoACobrar} registrado exitosamente en caja.`);
-      // Volvemos a cargar las citas de la fecha que esté seleccionada
       fetchCitasPorFecha(fechaSeleccionada); 
     } catch (error) {
       alert(`Error al registrar el cobro: ${error.message}`);
+    }
+  };
+
+  // NUEVO: Función para cancelar la cita
+  const handleCancelar = async (id_cita) => {
+    const confirmar = window.confirm("¿Estás seguro de que deseas cancelar esta cita?");
+    if (!confirmar) return;
+
+    try {
+      const { error } = await supabase
+        .from('citas')
+        .update({ estado: 'Cancelada' }) // Asume que 'Cancelada' es un estado válido en tu BD
+        .eq('id_cita', id_cita);
+
+      if (error) throw error;
+      
+      alert("Cita cancelada exitosamente.");
+      fetchCitasPorFecha(fechaSeleccionada); // Refrescamos la lista
+    } catch (error) {
+      alert(`Error al cancelar la cita: ${error.message}`);
     }
   };
 
@@ -103,8 +119,6 @@ export const Recepcion = () => {
 
   const opcionesFecha = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
   const fechaHoyStr = new Date().toLocaleDateString('es-MX', opcionesFecha);
-
-  // Para saber si el usuario está viendo hoy u otro día
   const esHoy = fechaSeleccionada === new Date().toISOString().split('T')[0];
 
   return (
@@ -124,14 +138,11 @@ export const Recepcion = () => {
               ➕ Nueva Cita
             </a>
           </li>
-          <li><a href="#">🐕 Expedientes</a></li>
           <li><a href="#">📦 Inventario</a></li>
         </ul>
       </aside>
 
       <main className="rec-main-content">
-        
-        {/* CABECERA */}
         <div className="rec-header-main">
           <div>
             <h1>Panel de Recepción</h1>
@@ -140,8 +151,6 @@ export const Recepcion = () => {
           <button onClick={handleLogout} className="btn-logout">Cerrar Sesión</button>
         </div>
 
-        {/* 1. CONTROL DE CAJA Y ESTADÍSTICAS */}
-        {/* Cambié los títulos para que sean dinámicos dependiendo si ves "hoy" u otra fecha */}
         <div className="stats-grid">
           <div className="stat-card green">
             <h4>{esHoy ? 'INGRESOS DEL DÍA' : 'INGRESOS DE LA FECHA'}</h4>
@@ -161,15 +170,11 @@ export const Recepcion = () => {
           </div>
         </div>
 
-        {/* CONTENEDOR DE DOS COLUMNAS */}
         <div className="panels-grid">
-          
-          {/* 2. CONTROL DE CITAS (Izquierda) */}
           <div className="panel">
             <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <h2 style={{ margin: 0 }}>Gestión de Citas</h2>
-                {/* 3. NUEVO: El calendario interactivo */}
                 <input 
                   type="date" 
                   value={fechaSeleccionada}
@@ -203,25 +208,42 @@ export const Recepcion = () => {
                       <p>{cita.details}</p>
                     </div>
 
-                    {cita.isPaid ? (
-                      <button className="btn-action btn-paid" disabled>
-                        Cobrado
-                      </button>
-                    ) : (
-                      <button 
-                        className="btn-action btn-pay"
-                        onClick={() => handleCobrar(cita.id_cita, cita.monto)}
-                      >
-                        Cobrar {cita.monto ? `$${cita.monto}` : ''}
-                      </button>
-                    )}
+                    {/* NUEVO: Lógica condicional para los botones */}
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      {cita.isCancelled ? (
+                        <button className="btn-action" disabled style={{ backgroundColor: '#e0e0e0', color: '#666', border: '1px solid #ccc', cursor: 'not-allowed' }}>
+                          Cancelada
+                        </button>
+                      ) : cita.isPaid ? (
+                        <button className="btn-action btn-paid" disabled>
+                          Cobrado
+                        </button>
+                      ) : (
+                        <>
+                          <button 
+                            className="btn-action btn-pay"
+                            onClick={() => handleCobrar(cita.id_cita, cita.monto)}
+                          >
+                            Cobrar {cita.monto ? `$${cita.monto}` : ''}
+                          </button>
+                          
+                          <button 
+                            className="btn-action btn-cancel"
+                            onClick={() => handleCancelar(cita.id_cita)}
+                            style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
+                          >
+                            Cancelar
+                          </button>
+                        </>
+                      )}
+                    </div>
+
                   </div>
                 ))
               )}
             </div>
           </div>
 
-          {/* 3. CONTROL DE INVENTARIO (Derecha) */}
           <div className="panel">
             <h2>Faltantes y Material</h2>
             
