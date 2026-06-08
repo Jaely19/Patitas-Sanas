@@ -41,9 +41,6 @@ export const DashVet = () => {
         <h2>Patitas<span>Sanas</span></h2>
         <ul className="nav-menu">
           <li><a href="#" className="active">📅 <span>Mi Agenda</span></a></li>
-          <li><a href="#">🐕 <span>Pacientes</span></a></li>
-          <li><a href="#">📝 <span>Historiales</span></a></li>
-          <li><a href="#">💊 <span>Inventario</span></a></li>
         </ul>
       </aside>
 
