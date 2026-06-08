@@ -266,10 +266,8 @@ La interfaz web fue construida con un enfoque en la usabilidad y la presentació
 - **Vercel**: Plataforma de despliegue continuo integrada con el repositorio, utilizada para previsualización y producción.
 
 
-
+## Imagenes del Proyecto
 <details>
-<summary>🖼️ Ver Imagenes del Proyecto</summary>
-
 | Pantalla de Inicio |
 |---|
 | <img loading="lazy" src="./fotos/inicio.png" width="800"/> |
@@ -308,10 +306,6 @@ La interfaz web fue construida con un enfoque en la usabilidad y la presentació
 | Veterinario |
 |---|
 | <img loading="lazy" src="./fotos/vet.png" width="800"/> |
-
-</details>
-
-
 ---
 
 🔗 Enlaces
