@@ -61,7 +61,7 @@ manejo de personal e informacion sobre los servicios proporcionados.
 </details>
 
 ### 📂estructura general:
-
+```
   frontend/
 ├── .gitignore
 ├── README.md
@@ -97,7 +97,7 @@ manejo de personal e informacion sobre los servicios proporcionados.
 │       ├── Recepcion.css
 │       └── Recepcion.jsx       # Panel operativo: caja, inventario y turnos
 ```
-```
+
 
 ### Usuarios:
 ### Usuario de Prueba: 
