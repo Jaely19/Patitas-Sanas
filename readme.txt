@@ -1,20 +1,27 @@
-Proyecto 7: Patitas Sanas - Veterinaria
+README DE NOSOTROS EQUIPO 
 
-Sistema web para una clínica veterinaria enfocado en realizar citas en línea, control de invetarios, manejo de personal e informacion sobre los servicios proporcionados.
+## Proyecto 7: Patitas Sanas - Veterinaria 
+Sistema web para una clínica veterinaria enfocado en realizar citas en línea, control de invetarios, 
+manejo de personal e informacion sobre los servicios proporcionados.
 
-🛠️ Tecnologías
+### 🛠️ Tecnologías
+* Backend: Node.js y BaaS (Supabase)
+* Base de Datos: Supabase (PostgreSQL)
+* Frontend: HTML, CSS, JavaScript, React.js con Vite
+* Despliegue: Vercel y GitHub pages
 
-Backend: Node.js y BaaS (Supabase)
-Base de Datos: Supabase (PostgreSQL)
-Frontend: HTML, CSS, JavaScript, React.js con Vite
-Despliegue: Vercel y GitHub pages
-✨ Funcionalidades principales
+### ✨ Funcionalidades principales
+* Registro e inicio de sesión de usuarios.
+* Portal de clientes interactivo para gestionar perfiles e historial de mascotas.
+* Agendamiento automatizado de citas médicas por especialidad y horario en tiempo real.
+* Panel administrativo interno para el control de la agenda y expedientes.
 
-Registro e inicio de sesión de usuarios.
-Portal de clientes interactivo para gestionar perfiles e historial de mascotas.
-Agendamiento automatizado de citas médicas por especialidad y horario en tiempo real.
-Panel administrativo interno para el control de la agenda y expedientes.
-🖼️ Ver capturas de pantalla
+<details>
+<summary>🖼️ Ver capturas de pantalla</summary>
+| <img loading="lazy" src="https://github.com/Jaely19/Patitas-Sanas/blob/main/pantallap.png" alt="Vista principal de Veterinaria" width="800"/> | |
+| <img loading="lazy" src="https://github.com/Jaely19/Patitas-Sanas/blob/main/sevicios.png" alt="servicios" width="800"/> |
+</details>
+
 
 ### 📂estructura general:
 ```
@@ -54,29 +61,15 @@ Panel administrativo interno para el control de la agenda y expedientes.
 │       └── Recepcion.jsx       # Panel operativo: caja, inventario y turnos
 ```
 ```
-backend/
-├── index.js               # Lógica del servidor y rutas API.
-├── package-lock.json      # Registro de versiones exactas de dependencias.
-└── package.json           # // Manifiesto del proyecto: define dependencias, 
-                           # // scripts de ejecución y configuración del entorno.
-```
 
-<details>
-<summary>🖼️ Ver Diagramas</summary>
+### Usuarios:
+*Usuario de Prueba: Correo: Prueba1@gmail.com Contraseña: 123456789
+*Admin: Correo: admin@gmail.com Contraseña: Admin2026
 
-| Diagrama EER |
-|---|
-| <img loading="lazy" src="https://raw.githubusercontent.com/ctlu-l/pagina-web/main/BD_v.drawio.png" width="800"/> |
+### 🔗 Enlaces
+Código Fuente: [Repositorio GitHub](https://github.com/Jaely19/Patitas-Sanas)
+Demo en Vivo: [Patitas Sanas Web](https://patitas-sanas.vercel.app)
 
-| Diagrama Relacional |
-|---|
-| <img loading="lazy" src="https://raw.githubusercontent.com/ctlu-l/pagina-web/main/Untitled%20(1).png" width="800"/> |
-
-| Servicios |
-|---|
-| <img loading="lazy" src="./fotos/servicios.png" width="800"/> |
-
-</details>
 
 Usuarios:
 
@@ -87,3 +80,7 @@ Usuarios:
 Código Fuente: Repositorio GitHub Demo en Vivo: Patitas Sanas Web
 
 Repositorio central, visitalo en la siguiente liga: https://github.com/gabrielhuav/DB-Coursework-2026-2
+
+
+README PROFE 
+
