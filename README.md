@@ -33,9 +33,9 @@ manejo de personal e informacion sobre los servicios proporcionados.
 
 | Panel de Citas |
 |---|
-| <img loading="lazy" src="./fotos/citas-1.png" width="800"/> |
-| <img loading="lazy" src="./fotos/citas-2.png" width="800"/> |
-| <img loading="lazy" src="./fotos/citas-3.png" width="800"/> |
+| <img loading="lazy" src="./fotos/cita-1.png" width="800"/> |
+| <img loading="lazy" src="./fotos/cita-2.png" width="800"/> |
+| <img loading="lazy" src="./fotos/cita-3.png" width="800"/> |
 
 | Clientes |
 |---|
