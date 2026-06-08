@@ -1,20 +1,64 @@
-Proyecto 7: Patitas Sanas - Veterinaria
+README DE NOSOTROS EQUIPO 
 
-Sistema web para una clínica veterinaria enfocado en realizar citas en línea, control de invetarios, manejo de personal e informacion sobre los servicios proporcionados.
+## Proyecto 7: Patitas Sanas - Veterinaria 
+Sistema web para una clínica veterinaria enfocado en realizar citas en línea, control de invetarios, 
+manejo de personal e informacion sobre los servicios proporcionados.
 
-🛠️ Tecnologías
+### 🛠️ Tecnologías
+* Backend: Node.js y BaaS (Supabase)
+* Base de Datos: Supabase (PostgreSQL)
+* Frontend: HTML, CSS, JavaScript, React.js con Vite
+* Despliegue: Vercel y GitHub pages
 
-Backend: Node.js y BaaS (Supabase)
-Base de Datos: Supabase (PostgreSQL)
-Frontend: HTML, CSS, JavaScript, React.js con Vite
-Despliegue: Vercel y GitHub pages
-✨ Funcionalidades principales
+### ✨ Funcionalidades principales
+* Registro e inicio de sesión de usuarios.
+* Portal de clientes interactivo para gestionar perfiles e historial de mascotas.
+* Agendamiento automatizado de citas médicas por especialidad y horario en tiempo real.
+* Panel administrativo interno para el control de la agenda y expedientes.
 
-Registro e inicio de sesión de usuarios.
-Portal de clientes interactivo para gestionar perfiles e historial de mascotas.
-Agendamiento automatizado de citas médicas por especialidad y horario en tiempo real.
-Panel administrativo interno para el control de la agenda y expedientes.
-🖼️ Ver capturas de pantalla
+<details>
+<summary>🖼️ Ver Imagenes del Proyecto</summary>
+
+| Pantalla de Inicio |
+|---|
+| <img loading="lazy" src="./fotos/inicio.png" width="800"/> |
+
+| Servicios |
+|---|
+| <img loading="lazy" src="./fotos/servicios.png" width="800"/> |
+
+| Login |
+|---|
+| <img loading="lazy" src="./fotos/login.png" width="800"/> |
+
+| Panel de Citas |
+|---|
+| <img loading="lazy" src="./fotos/citas-1.png" width="800"/> |
+| <img loading="lazy" src="./fotos/citas-2.png" width="800"/> |
+| <img loading="lazy" src="./fotos/citas-3.png" width="800"/> |
+
+| Clientes |
+|---|
+| <img loading="lazy" src="./fotos/cliente.png" width="800"/> |
+
+| Inventario |
+|---|
+| <img loading="lazy" src="./fotos/inv.png" width="800"/> |
+
+| Recepcionista |
+|---|
+| <img loading="lazy" src="./fotos/rec.png" width="800"/> |
+
+| Administrador |
+|---|
+| <img loading="lazy" src="./fotos/admin-1.png" width="800"/> |
+| <img loading="lazy" src="./fotos/admin-2.png" width="800"/> |
+
+| Veterinario |
+|---|
+| <img loading="lazy" src="./fotos/vet.png" width="800"/> |
+
+</details>
 
 ### 📂estructura general:
 ```
@@ -54,36 +98,28 @@ Panel administrativo interno para el control de la agenda y expedientes.
 │       └── Recepcion.jsx       # Panel operativo: caja, inventario y turnos
 ```
 ```
-backend/
-├── index.js               # Lógica del servidor y rutas API.
-├── package-lock.json      # Registro de versiones exactas de dependencias.
-└── package.json           # // Manifiesto del proyecto: define dependencias, 
-                           # // scripts de ejecución y configuración del entorno.
-```
 
-<details>
-<summary>🖼️ Ver Diagramas</summary>
+### Usuarios:
+### Usuario de Prueba: 
+* Correo: usuariodemo@gmail.com
+* Contraseña: usuario1234
 
-| Diagrama EER |
-|---|
-| <img loading="lazy" src="https://raw.githubusercontent.com/ctlu-l/pagina-web/main/BD_v.drawio.png" width="800"/> |
+### Recepcionista: 
+* Correo: marirep@gmail.com
+* Contraseña: Spam18091809.
 
-| Diagrama Relacional |
-|---|
-| <img loading="lazy" src="https://raw.githubusercontent.com/ctlu-l/pagina-web/main/Untitled%20(1).png" width="800"/> |
+### Veterinario
+* Correo: veterinario@demo.com
+* Contraseña: vet123
 
-| Servicios |
-|---|
-| <img loading="lazy" src="./fotos/servicios.png" width="800"/> |
+### Admin: 
+Correo: admin@patitassanas.com
+Contraseña: Admin1234
 
-</details>
-
-Usuarios:
-
-*Usuario de Prueba: Correo: Prueba1@gmail.com Contraseña: 123456789 *Admin: Correo: admin@gmail.com Contraseña: Admin2026
-
-🔗 Enlaces
-
-Código Fuente: Repositorio GitHub Demo en Vivo: Patitas Sanas Web
-
+### 🔗 Enlaces
+Código Fuente: [Repositorio GitHub](https://github.com/Jaely19/Patitas-Sanas)
+Demo en Vivo: [Patitas Sanas Web](https://patitas-sanas.vercel.app)
 Repositorio central, visitalo en la siguiente liga: https://github.com/gabrielhuav/DB-Coursework-2026-2
+
+
+
