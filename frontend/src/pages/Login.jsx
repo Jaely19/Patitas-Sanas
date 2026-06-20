@@ -16,9 +16,6 @@ function Login() {
     e.preventDefault();
     const emailLimpio = email.trim();
 
-    // ==========================================
-    // --- MODO DEMO: USUARIOS DE PRUEBA ---
-    // ==========================================
     if (emailLimpio === 'veterinario@demo.com' && password === 'vet123') {
       navigate('/demo-veterinario');
       return; 
