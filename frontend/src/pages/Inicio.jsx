@@ -11,9 +11,12 @@ function Inicio() {
             <a href="#inicio">Inicio</a>
             <a href="#servicios">Servicios</a>
             <a href="#contacto">Contacto</a>
-            {/* Usamos el enrutador de React para ir al Dashboard */}
+      
+            <Link to="/tienda" style={{ fontWeight: 600 }}>
+              Tienda 
+            </Link>
             <Link to="/login" style={{ color: 'var(--accent-color)', fontWeight: 700 }}>
-              Ingresar 👤
+              Ingresar 
             </Link>
           </nav>
           <a href="tel:5536317711" className="btn-contacto">Llamar: 55 3631 7711</a>

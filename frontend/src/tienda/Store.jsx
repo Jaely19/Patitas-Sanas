@@ -1,0 +1,76 @@
+import React, { useState, useEffect, useContext } from 'react';
+import { supabase } from '../supabase'; 
+import ProductCard from './ProductCard'; 
+import Cart from './Cart'; 
+import { Link } from 'react-router-dom';
+import { CartContext } from './CartContext'; // Para saber cuántos items hay
+import './Tienda.css';
+
+const Store = () => {
+  const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  // NUEVO ESTADO: Controla si vemos el catálogo o el ticket
+  const [mostrarTicket, setMostrarTicket] = useState(false);
+
+  // Extraemos el carrito para contar los artículos
+  const { carrito } = useContext(CartContext);
+  const totalArticulos = carrito.reduce((acc, item) => acc + item.cantidad, 0);
+
+  useEffect(() => {
+    const fetchProductos = async () => {
+      const { data, error } = await supabase
+        .from('productos')
+        .select('*')
+        .gt('stock', 0)
+        .order('id', { ascending: true });
+
+      if (error) console.error("Error al cargar productos:", error);
+      else setProductos(data);
+      
+      setLoading(false);
+    };
+
+    fetchProductos();
+  }, []);
+
+  if (loading) return <p style={{textAlign: 'center', marginTop: '50px'}}>Cargando catálogo...</p>;
+
+  return (
+    <div className="tienda-container">
+      {/* BARRA SUPERIOR DE NAVEGACIÓN */}
+      <div className="navegacion-tienda flex-nav">
+        <Link to="/" className="btn-volver">← Volver al Inicio</Link>
+        
+        {/* BOTÓN MÁGICO: Finalizar Compra */}
+        <button 
+          className="btn-ver-carrito"
+          onClick={() => setMostrarTicket(!mostrarTicket)}
+        >
+          {mostrarTicket ? "← Seguir Comprando" : `Finalizar Compra (${totalArticulos})`}
+        </button>
+      </div>
+
+      <h1 className="tienda-titulo">
+        {mostrarTicket ? "Finalizar Compra" : "Catálogo Patitas Sanas"}
+      </h1>
+
+      {/* RENDERIZADO CONDICIONAL */}
+      {mostrarTicket ? (
+        // Si mostrarTicket es TRUE, mostramos solo el ticket centrado
+        <div className="ticket-centrado">
+          <Cart />
+        </div>
+      ) : (
+        // Si es FALSE, mostramos la cuadrícula de productos
+        <div className="grid-productos">
+          {productos.map((producto) => (
+            <ProductCard key={producto.id} producto={producto} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Store;
