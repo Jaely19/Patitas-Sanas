@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
+import './Mascotas.css'; 
 
 function Mascotas() {
   const [mascotas, setMascotas] = useState([]);
@@ -8,7 +9,14 @@ function Mascotas() {
   const [especie, setEspecie] = useState('');
   const [sexo, setSexo] = useState('');
   const [edad, setEdad] = useState('');
+  const [caracteristicas, setCaracteristicas] = useState('');
+  const [foto, setFoto] = useState(null); 
+  const [cargando, setCargando] = useState(false); 
   const [idCliente, setIdCliente] = useState(null);
+  
+  const [idMascotaEditando, setIdMascotaEditando] = useState(null);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,148 +43,189 @@ function Mascotas() {
     }
   };
 
+  const editarMascota = (mascota) => {
+    setNombre(mascota.nombre);
+    setEspecie(mascota.especie);
+    setSexo(mascota.sexo);
+    setEdad(mascota.edad || '');
+    setCaracteristicas(mascota.caracteristicas || ''); 
+    setIdMascotaEditando(mascota.id_mascota);
+    setMostrarFormulario(true); // Abrir formulario al editar
+    
+    // Hacer scroll suave hacia el formulario
+    setTimeout(() => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }, 100);
+  };
+
+  const cancelarEdicion = () => {
+    setNombre(''); 
+    setEspecie(''); 
+    setSexo(''); 
+    setEdad('');
+    setCaracteristicas(''); 
+    setFoto(null);
+    document.getElementById('foto-input').value = '';
+    setIdMascotaEditando(null);
+    setMostrarFormulario(false); // Cerramos el formulario al cancelar
+  };
+
   const guardarMascota = async () => {
     if (!nombre || !especie) return alert('Nombre y especie son obligatorios');
-    const { error } = await supabase.from('mascotas').insert({
-      id_cliente: idCliente,
-      nombre,
-      especie,
-      sexo,
-      edad: edad ? parseInt(edad) : null,
-    });
-    if (error) { console.error(error); return alert('Error al guardar'); }
-    alert('¡Mascota guardada!');
-    setNombre(''); setEspecie(''); setSexo(''); setEdad('');
-    obtenerClienteYMascotas();
+    setCargando(true);
+
+    let fotoUrl = null;
+
+    try {
+      if (foto) {
+        const fileExt = foto.name.split('.').pop();
+        const fileName = `${Date.now()}.${fileExt}`;
+        const filePath = `${idCliente}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('fotos_mascotas')
+          .upload(filePath, foto);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('fotos_mascotas')
+          .getPublicUrl(filePath);
+
+        fotoUrl = publicUrl;
+      }
+
+      const datosMascota = {
+        nombre, especie, sexo, edad: edad ? parseInt(edad) : null, caracteristicas
+      };
+
+      if (fotoUrl) {
+        datosMascota.foto_url = fotoUrl;
+      }
+
+      if (idMascotaEditando) {
+        const { error: dbError } = await supabase
+          .from('mascotas')
+          .update(datosMascota)
+          .eq('id_mascota', idMascotaEditando);
+          
+        if (dbError) throw dbError;
+        alert('¡Datos de la mascota actualizados!');
+      } else {
+        datosMascota.id_cliente = idCliente; 
+        const { error: dbError } = await supabase
+          .from('mascotas')
+          .insert(datosMascota);
+          
+        if (dbError) throw dbError;
+        alert('¡Mascota guardada con éxito!');
+      }
+      
+      cancelarEdicion(); // Esto limpia y cierra el formulario
+      obtenerClienteYMascotas();
+
+    } catch (error) {
+      console.error("Error al guardar la mascota:", error);
+      alert('Hubo un error al guardar. Revisa la consola.');
+    } finally {
+      setCargando(false);
+    }
   };
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+    <div className="masc-wrap">
+      <div className="masc-modal">
+        <h2>Mis Mascotas</h2>
 
-        .masc-wrap {
-          font-family: 'Nunito', sans-serif;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          padding: 40px 20px;
-          min-height: 100vh;
-          background: #f0f2f8;
-        }
+        {/* LISTADO DE CREDENCIALES EN CUADRÍCULA */}
+        {mascotas.length === 0 ? (
+          <p className="masc-empty">No hay mascotas registradas aún. ¡Registra a tu primer peludito!</p>
+        ) : (
+          <div className="credenciales-grid">
+            {mascotas.map((m) => (
+              <div key={m.id_mascota} className="credencial-card">
+                
+                <div className="credencial-header">
+                  <div className="credencial-logo">🐾</div>
+                  <div className="credencial-titles">
+                    <p>INSTITUTO NACIONAL DE MASCOTAS</p>
+                    <p>REGISTRO DE ANGELITOS PELUDOS</p>
+                    <p>CREDENCIAL PARA LADRAR</p>
+                  </div>
+                </div>
 
-        .masc-modal {
-          background: #fff;
-          border-radius: 20px;
-          padding: 40px 36px;
-          width: 100%;
-          max-width: 520px;
-          box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-        }
+                <div className="credencial-body">
+                  <div className="credencial-left">
+                    <div className="credencial-photo-box">
+                      {m.foto_url ? (
+                        <img src={m.foto_url} alt={`Foto de ${m.nombre}`} />
+                      ) : (
+                        <span className="credencial-photo-placeholder">🐶</span>
+                      )}
+                    </div>
+                    <div className="credencial-barcode" title="Código de Mascota"></div>
+                  </div>
 
-        .masc-modal h2 {
-          font-size: 1.7rem;
-          font-weight: 800;
-          color: #1a2a6c;
-          text-align: center;
-          margin-bottom: 24px;
-        }
+                  <div className="credencial-right">
+                    <div className="credencial-field">
+                      <label>NOMBRE:</label>
+                      <span>{m.nombre}</span>
+                    </div>
+                    
+                    <div className="credencial-row-split">
+                      <div className="credencial-field">
+                        <label>ESPECIE:</label>
+                        <span>{m.especie}</span>
+                      </div>
+                      <div className="credencial-field" style={{ flex: '0.5' }}>
+                        <label>SEXO:</label>
+                        <span>{m.sexo}</span>
+                      </div>
+                    </div>
 
-        .masc-form-box {
-          border: 1px solid #e0e0e0;
-          border-radius: 14px;
-          padding: 20px;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          margin-bottom: 28px;
-        }
+                    <div className="credencial-field">
+                      <label>EDAD:</label>
+                      <span>{m.edad ? `${m.edad} AÑOS` : 'N/A'}</span>
+                    </div>
 
-        .masc-form-box input,
-        .masc-form-box select {
-          width: 100%;
-          border: 1px solid #d0d0d0;
-          border-radius: 8px;
-          padding: 11px 14px;
-          font-family: 'Nunito', sans-serif;
-          font-size: 0.95rem;
-          color: #333;
-          outline: none;
-          transition: border-color 0.15s;
-          background: #fff;
-        }
-        .masc-form-box input:focus,
-        .masc-form-box select:focus { border-color: #4a90d9; }
-        .masc-form-box input::placeholder { color: #bbb; }
+                    <div className="credencial-field">
+                      <label>CARACTERÍSTICAS:</label>
+                      <span>{m.caracteristicas ? m.caracteristicas : 'MUY BUEN CHICO'}</span>
+                    </div>
+                    
+                    <button 
+                      className="btn-editar-mascota" 
+                      onClick={() => editarMascota(m)}
+                    >
+                      ✏️ Editar Datos
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
-        .masc-btn-guardar {
-          background: #4a90d9;
-          color: #fff;
-          border: none;
-          border-radius: 10px;
-          padding: 12px;
-          font-family: 'Nunito', sans-serif;
-          font-size: 1rem;
-          font-weight: 700;
-          cursor: pointer;
-          width: 100%;
-          transition: opacity 0.15s;
-        }
-        .masc-btn-guardar:hover { opacity: 0.88; }
+        <hr style={{ border: 'none', borderTop: '2px dashed #e0e0e0', margin: '30px 0' }} />
 
-        .masc-pets-title {
-          font-size: 1.05rem;
-          font-weight: 800;
-          color: #1a2a6c;
-          text-align: center;
-          margin-bottom: 14px;
-        }
+        {/* BOTÓN DESPLEGABLE PARA MOSTRAR/OCULTAR FORMULARIO */}
+        <button 
+          className="btn-toggle-form" 
+          onClick={() => {
+            setMostrarFormulario(!mostrarFormulario);
+            if(idMascotaEditando) cancelarEdicion(); // Si cierra el form, cancelamos la edición
+          }}
+        >
+          {mostrarFormulario ? '▲ Ocultar Formulario' : '➕ Agregar Nueva Mascota'}
+        </button>
 
-        .masc-pet-item {
-          border: 1px solid #e8e8e8;
-          border-radius: 12px;
-          padding: 14px 18px;
-          margin-bottom: 10px;
-          background: #fafafa;
-        }
-        .masc-pet-item strong {
-          font-size: 0.97rem;
-          color: #1a2a6c;
-          display: block;
-        }
-        .masc-pet-item span {
-          font-size: 0.87rem;
-          color: #777;
-          margin-top: 3px;
-          display: block;
-        }
-
-        .masc-empty {
-          text-align: center;
-          color: #aaa;
-          font-size: 0.9rem;
-          padding: 10px 0;
-        }
-
-        .masc-volver {
-          margin-top: 24px;
-          background: none;
-          border: none;
-          color: #1a2a6c;
-          font-family: 'Nunito', sans-serif;
-          font-size: 0.95rem;
-          font-weight: 700;
-          cursor: pointer;
-          text-decoration: underline;
-        }
-        .masc-volver:hover { opacity: 0.7; }
-      `}</style>
-
-      <div className="masc-wrap">
-        <div className="masc-modal">
-          <h2>Mis Mascotas</h2>
-
+        {/* FORMULARIO CONDICIONAL (SOLO SE MUESTRA SI mostrarFormulario ES TRUE) */}
+        {mostrarFormulario && (
           <div className="masc-form-box">
+            <h3 style={{ textAlign: 'center', color: '#1a2a6c', marginTop: 0 }}>
+              {idMascotaEditando ? '✏️ Editando Mascota' : 'Registrar Peludito'}
+            </h3>
+            
             <input
               placeholder="Nombre"
               value={nombre}
@@ -200,29 +249,54 @@ function Mascotas() {
               value={edad}
               onChange={(e) => setEdad(e.target.value)}
             />
-            <button className="masc-btn-guardar" onClick={guardarMascota}>
-              Guardar Mascota
-            </button>
+
+            <input
+              placeholder="Características (Ej. Manchas negras, muy juguetón...)"
+              value={caracteristicas}
+              onChange={(e) => setCaracteristicas(e.target.value)}
+              maxLength={40} 
+            />
+            
+            <input
+              id="foto-input"
+              type="file"
+              accept="image/*"
+              className="masc-input-file"
+              onChange={(e) => setFoto(e.target.files[0])}
+            />
+            <small style={{ color: '#777', fontSize: '0.8rem', marginTop: '-8px' }}>
+              {idMascotaEditando ? 'Sube una foto solo si deseas cambiar la actual.' : 'Sube una foto de tu peludito (opcional)'}
+            </small>
+
+            <div className="masc-form-acciones">
+              <button 
+                className="masc-btn-guardar" 
+                onClick={guardarMascota}
+                disabled={cargando}
+              >
+                {cargando ? 'Guardando...' : (idMascotaEditando ? 'Actualizar Mascota' : 'Guardar Mascota')}
+              </button>
+              
+              {idMascotaEditando && (
+                <button 
+                  className="masc-btn-cancelar" 
+                  onClick={cancelarEdicion}
+                  disabled={cargando}
+                >
+                  Cancelar Edición
+                </button>
+              )}
+            </div>
           </div>
+        )}
 
-          <p className="masc-pets-title">Mis peluditos registrados:</p>
-          {mascotas.length === 0 ? (
-            <p className="masc-empty">No hay mascotas registradas aún.</p>
-          ) : (
-            mascotas.map((m) => (
-              <div key={m.id_mascota} className="masc-pet-item">
-                <strong>{m.nombre} — {m.especie}</strong>
-                <span>Sexo: {m.sexo === 'M' ? 'Macho' : m.sexo === 'H' ? 'Hembra' : 'N/A'} | Edad: {m.edad ? m.edad + ' años' : 'N/A'}</span>
-              </div>
-            ))
-          )}
-        </div>
-
-        <button className="masc-volver" onClick={() => navigate('/portal-cliente')}>
-          ← Volver al Portal
-        </button>
       </div>
-    </>
+
+      <button className="masc-volver" onClick={() => navigate('/portal-cliente')}>
+        ← Volver al Portal
+      </button>
+
+    </div>
   );
 }
 

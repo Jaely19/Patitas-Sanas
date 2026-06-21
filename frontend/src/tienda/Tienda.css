@@ -9,9 +9,9 @@
 }
 
 .tienda-titulo {
-  font-size: 2.5rem;
+  font-size: 1.8rem; /* Ajustado para la barra */
   color: #333;
-  margin-bottom: 30px;
+  margin: 0; /* Sin margen inferior */
   text-align: center;
 }
 
@@ -87,11 +87,25 @@
 /* =========================================
    2. BARRA DE NAVEGACIÓN Y BOTONES
    ========================================= */
+.navegacion-tienda {
+  /* Propiedades mágicas para que flote al hacer scroll */
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  
+  /* Color de fondo para tapar los productos al bajar */
+  background-color: #f4f7f8; 
+  
+  /* Margen interno y sombra */
+  padding: 15px 20px;
+  margin: -40px -20px 30px -20px; 
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
 .flex-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
 }
 
 .btn-volver {

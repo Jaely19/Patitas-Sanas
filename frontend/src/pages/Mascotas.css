@@ -1,0 +1,246 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+.masc-wrap {
+  font-family: 'Nunito', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  min-height: 100vh;
+  background: #f0f2f8;
+}
+
+.masc-modal {
+  background: #fff;
+  border-radius: 20px;
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 1100px; 
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+.masc-modal h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #000000;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.masc-pets-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #000000;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* =========================================
+   CUADRÍCULA PARA LAS CREDENCIALES
+   ========================================= */
+.credenciales-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 24px;
+  width: 100%;
+  margin-bottom: 30px;
+}
+
+/* =========================================
+   DISEÑO TIPO CREDENCIAL (INE PARA MASCOTAS)
+   ========================================= */
+.credencial-card {
+  width: 100%;
+  background-color: #fcfdfd;
+  border: 2px solid #333;
+  border-radius: 16px;
+  box-shadow: 0 6px 16px rgba(12, 163, 20, 0.15);
+  overflow: hidden;
+  position: relative;
+  font-family: 'Times New Roman', Times, serif, Helvetica, sans-serif; 
+  display: flex;
+  flex-direction: column;
+}
+
+.credencial-header {
+  background-color: #ee9229;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid #ccc;
+  border-radius: 14px 14px 0 0;
+}
+
+.credencial-logo { 
+  font-size: 2.5rem; 
+  margin-right: 12px; 
+  margin-left: 8px; 
+}
+
+.credencial-titles { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  flex-grow: 1; 
+}
+
+.credencial-titles p { 
+  margin: 0; 
+  color: #000000; 
+  font-family: Arial, Helvetica, sans-serif; 
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  text-align: center; 
+}
+.credencial-titles p:nth-child(1) { font-size: 0.75rem; }
+.credencial-titles p:nth-child(2) { font-size: 0.85rem; }
+.credencial-titles p:nth-child(3) { font-size: 1rem; text-transform: uppercase; margin-top: 2px; }
+
+.credencial-body {
+  display: flex;
+  padding: 15px;
+  gap: 15px;
+  background-image: radial-gradient(circle at 90% 10%, rgba(255, 0, 150, 0.05) 0%, transparent 40%);
+  flex-grow: 1;
+}
+
+.credencial-left { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  width: 140px; 
+  flex-shrink: 0; 
+}
+
+.credencial-photo-box {
+  width: 100%; height: 160px; border: 2px solid #222; background-color: #f8f8f8;
+  display: flex; justify-content: center; align-items: center; overflow: hidden; margin-bottom: 10px;
+}
+.credencial-photo-box img { width: 100%; height: 100%; object-fit: cover; }
+.credencial-photo-placeholder { font-size: 3rem; color: #ccc; }
+
+.credencial-barcode {
+  width: 100%; height: 30px; border-left: 10px solid #000; border-right: 10px solid #000; border-radius: 4px;
+  background: repeating-linear-gradient(to right, #000 0, #000 3px, #fff 3px, #fff 5px, #000 5px, #000 6px, #fff 6px, #fff 9px, #000 9px, #000 12px, #fff 12px, #fff 14px);
+}
+
+.credencial-right { 
+  flex-grow: 1; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: flex-start; 
+  gap: 12px; 
+}
+
+.credencial-field { 
+  display: flex; 
+  align-items: flex-end; 
+  border-bottom: 2px solid #222; 
+  padding-bottom: 2px; 
+}
+
+.credencial-field label { 
+  font-weight: 900; 
+  font-size: 0.8rem; 
+  color: #555; 
+  margin-right: 8px; 
+  text-transform: uppercase; 
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.credencial-field span { 
+  font-size: 1.05rem; 
+  font-weight: 700; 
+  text-transform: uppercase; 
+  font-family: Arial, Helvetica, sans-serif; 
+  color: #000000; 
+}
+
+.credencial-row-split { display: flex; gap: 15px; }
+.credencial-row-split .credencial-field { flex: 1; }
+
+.btn-editar-mascota {
+  background-color: #f39c12; color: white; border: none; padding: 8px 16px; border-radius: 8px;
+  font-family: 'Nunito', sans-serif; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+  margin-top: auto; align-self: flex-end; transition: opacity 0.2s;
+}
+.btn-editar-mascota:hover { opacity: 0.8; }
+
+/* =========================================
+   FORMULARIO Y BOTÓN DESPLEGABLE
+   ========================================= */
+
+.btn-toggle-form {
+  background-color: #4a90d9;
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 30px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  cursor: pointer;
+  margin: 0 auto 20px auto;
+  display: block;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(74, 144, 217, 0.3);
+}
+
+.btn-toggle-form:hover {
+  background-color: #3b7bc2;
+  transform: translateY(-2px);
+}
+
+.masc-form-box {
+  border: 1px solid #e0e0e0;
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 600px;
+  margin: 0 auto 28px auto; 
+  background-color: #fcfcfc;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.masc-form-box input, .masc-form-box select {
+  width: 100%; border: 1px solid #d0d0d0; border-radius: 8px; padding: 12px 14px;
+  font-family: 'Nunito', sans-serif; font-size: 1rem; color: #333; outline: none; transition: border-color 0.15s;
+}
+.masc-form-box input:focus, .masc-form-box select:focus { border-color: #4a90d9; }
+.masc-input-file { padding: 8px !important; font-size: 0.85rem !important; color: #666 !important; }
+
+.masc-btn-guardar {
+  background: #4a90d9; color: #fff; border: none; border-radius: 10px; padding: 14px;
+  font-family: 'Nunito', sans-serif; font-size: 1.05rem; font-weight: 800; cursor: pointer; width: 100%; transition: opacity 0.15s;
+}
+.masc-btn-guardar:hover { opacity: 0.88; }
+.masc-btn-guardar:disabled { background: #a0c4e8; cursor: not-allowed; }
+
+.masc-btn-cancelar {
+  background: #fff; color: #e74c3c; border: 1px solid #e74c3c; border-radius: 10px; padding: 12px;
+  font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; width: 100%; transition: all 0.15s; margin-top: 8px;
+}
+.masc-btn-cancelar:hover { background: #fdf0ed; }
+
+.masc-form-acciones { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.masc-empty { text-align: center; color: #aaa; font-size: 1.1rem; padding: 20px 0; }
+
+.masc-volver { 
+  margin-top: 24px; 
+  background: none; 
+  border: none; 
+  color: #1a2a6c; 
+  font-family: 'Nunito', sans-serif; 
+  font-size: 1rem; 
+  font-weight: 800; 
+  cursor: pointer; 
+  text-decoration: underline; 
+}
+.masc-volver:hover { opacity: 0.7; }
