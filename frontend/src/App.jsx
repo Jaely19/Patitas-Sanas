@@ -8,6 +8,7 @@ import Medico from './pages/Medico';
 import Admin from './pages/Admin';
 import AgendarCita from './pages/AgendarCita'; 
 import PortalCliente from './pages/PortalCliente';
+import { MisCompras } from './pages/MisCompras';
 import { DashVet } from './pages/DashVet';
 import { DashRec } from './pages/DashRec';
 import MisCitas from './pages/Citas';
@@ -24,6 +25,7 @@ function App() {
           <Route path="/portal-cliente" element={<PortalCliente />} />
           <Route path="/mis-citas" element={<MisCitas />} />
           <Route path="/mis-mascotas" element={<Mascotas />} />
+          <Route path="/mis-compras" element={<MisCompras />} />
           <Route path="/login" element={<Login />} />
           <Route path="/agendar-cita" element={<AgendarCita />} />
           <Route path="/panel-vet" element={<Medico />} />

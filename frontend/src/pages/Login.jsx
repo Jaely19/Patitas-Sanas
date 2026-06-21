@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { supabase } from '../supabase';
 import './Login.css'; 
 
@@ -10,12 +10,15 @@ function Login() {
   const [nombreCompleto, setNombreCompleto] = useState('');
   const [telefono, setTelefono] = useState('');
   const [cargando, setCargando] = useState(false);
+  
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const emailLimpio = email.trim();
 
+    // Cuentas Demo
     if (emailLimpio === 'veterinario@demo.com' && password === 'vet123') {
       navigate('/demo-veterinario');
       return; 
@@ -25,20 +28,20 @@ function Login() {
       navigate('/demo-recepcionista');
       return; 
     }
-    // ==========================================
 
     setCargando(true);
     try {
+      // Capturamos la ruta de origen (si viene de la tienda) o usamos el portal por defecto
+      const rutaDestino = location.state?.returnTo || '/portal-cliente';
+
       if (!isLogin) {
-        // FLUJO DE REGISTRO (Por defecto, quien se registra es un Cliente)
+        // FLUJO DE REGISTRO
         if (!nombreCompleto) {
           alert('Por favor ingresa tu nombre completo.');
           setCargando(false);
           return;
         }
         
-        // 1. Crear usuario en la autenticación de Supabase
-        // Esto genera la cuenta y nos devuelve la "data" con el ID del usuario
         const { data: authData, error: errorAuth } = await supabase.auth.signUp({ 
           email: emailLimpio, 
           password 
@@ -46,40 +49,40 @@ function Login() {
         
         if (errorAuth) throw errorAuth;
         
-        // 2. Guardar sus datos en tu tabla 'clientes' usando LOS NOMBRES EXACTOS DE TUS COLUMNAS
         const { error: errorCliente } = await supabase
           .from('clientes')
           .insert([{ 
             nombre_completo: nombreCompleto, 
             telefono: telefono || null, 
-            correo: emailLimpio, // <--- ¡AQUÍ ESTÁ LA CORRECCIÓN CLAVE!
-            user_id: authData.user.id // <--- Conectamos el cliente con su cuenta de Supabase
+            correo: emailLimpio, 
+            user_id: authData.user.id 
           }]);
           
         if (errorCliente) throw errorCliente;
         
-        alert('¡Cuenta creada! Ahora agenda tu primera cita.');
-        navigate('/agendar-cita');
+        alert('¡Cuenta creada con éxito!');
+        
+        // Si venía de la tienda lo regresamos a pagar, si no, a agendar su primera cita
+        navigate(location.state?.returnTo ? rutaDestino : '/agendar-cita');
 
       } else {
         // FLUJO DE INICIO DE SESIÓN UNIFICADO
-        // 1. Iniciar sesión en Supabase
         const { error } = await supabase.auth.signInWithPassword({ email: emailLimpio, password });
         if (error) throw error;
 
-        // 2. ¿Es Veterinario?
+        // ¿Es Veterinario?
         const { data: vet } = await supabase
           .from('veterinarios')
           .select('*')
           .eq('email', emailLimpio)
-          .maybeSingle(); // maybeSingle evita errores si no lo encuentra
+          .maybeSingle();
 
         if (vet) {
           navigate('/panel-vet');
           return;
         }
 
-        // 3. ¿Es Recepcionista o Administrador?
+        // ¿Es Recepcionista o Administrador?
         const { data: rec } = await supabase
           .from('recepcionistas')
           .select('*')
@@ -95,8 +98,8 @@ function Login() {
           return;
         }
 
-        // 4. Si no está en empleados, asumimos que es Cliente
-        navigate('/portal-cliente');
+        // Cliente: Lo mandamos a la ruta de retorno (carrito) o a su portal
+        navigate(rutaDestino);
       }
     } catch (error) {
       alert(`Error: ${error.message}`);

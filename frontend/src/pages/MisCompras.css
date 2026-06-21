@@ -1,0 +1,249 @@
+/* Variables de color de Patitas Sanas (puedes ajustarlas a tu paleta real) */
+:root {
+  --ps-primary: #2ab7a9;    /* Verde agua principal */
+  --ps-primary-light: #e0f5f3; /* Fondo suave */
+  --ps-text-dark: #2c3e50;  /* Texto principal */
+  --ps-text-gray: #7f8c8d;  /* Texto secundario */
+  --ps-border: #ecf0f1;     /* Bordes de tarjetas */
+  --ps-bg: #f8fcfb;         /* Fondo general del contenedor */
+}
+
+/* Contenedor principal */
+.mc-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: var(--ps-bg);
+  border-radius: 12px;
+}
+
+.mc-title {
+  color: var(--ps-text-dark);
+  font-size: 1.8rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid var(--ps-primary);
+  padding-bottom: 0.5rem;
+  display: inline-block;
+}
+
+/* Grid responsivo para las tarjetas */
+.mc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Diseño de la Tarjeta */
+.mc-card {
+  background: white;
+  border: 1px solid var(--ps-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  border-color: var(--ps-primary);
+}
+
+/* Cabecera de la tarjeta */
+.mc-card-header {
+  background-color: var(--ps-primary-light);
+  padding: 1rem 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--ps-border);
+}
+
+.mc-order-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-order-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--ps-text-gray);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.mc-order-id {
+  color: var(--ps-text-dark);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.mc-order-date {
+  font-size: 0.85rem;
+  color: var(--ps-text-gray);
+}
+
+/* Cuerpo de la tarjeta (Lista de productos) */
+.mc-card-body {
+  padding: 1.2rem;
+  flex-grow: 1; /* Permite que el footer se empuje al fondo si las tarjetas tienen distinta altura */
+}
+
+.mc-items-title {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  color: var(--ps-text-gray);
+  text-transform: uppercase;
+}
+
+.mc-items-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mc-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed var(--ps-border);
+  font-size: 0.95rem;
+}
+
+.mc-item:last-child {
+  border-bottom: none;
+}
+
+.mc-item-name {
+  color: var(--ps-text-dark);
+}
+
+.mc-item-qty {
+  color: var(--ps-text-gray);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.mc-item-price {
+  font-weight: 600;
+  color: var(--ps-text-dark);
+}
+
+/* Footer de la tarjeta (Total) */
+.mc-card-footer {
+  padding: 1rem 1.2rem;
+  background-color: #fafbfc;
+  border-top: 1px solid var(--ps-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mc-total-label {
+  font-weight: 600;
+  color: var(--ps-text-gray);
+}
+
+.mc-total-amount {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--ps-primary);
+}
+
+/* Estados de Carga, Error y Vacío */
+.mc-loading, .mc-error, .mc-empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--ps-text-gray);
+  font-size: 1.1rem;
+}
+
+.mc-error {
+  color: #e74c3c;
+  background-color: #fadbd8;
+  border-radius: 8px;
+  margin: 2rem;
+}
+
+.mc-empty-state h3 {
+  color: var(--ps-text-dark);
+  margin-bottom: 0.5rem;
+}
+
+.mc-empty-img {
+  width: 100px;
+  opacity: 0.5;
+  margin-bottom: 1rem;
+}
+
+/* Responsividad extra para móviles pequeños */
+@media (max-width: 480px) {
+  .mc-container {
+    padding: 1rem;
+  }
+  
+  .mc-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* Acciones superiores (Botón regresar) */
+.mc-header-actions {
+  margin-bottom: 1rem;
+}
+
+.mc-btn-back {
+  background: none;
+  border: none;
+  color: var(--ps-text-gray);
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.3s;
+}
+
+.mc-btn-back:hover {
+  color: var(--ps-primary);
+  text-decoration: underline;
+}
+
+/* Ajustes del Footer de la tarjeta para el nuevo botón */
+.mc-card-footer {
+  display: flex;
+  flex-direction: column; /* Cambiamos a columna para apilar el total y el botón */
+  gap: 1rem;
+}
+
+.mc-total-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.mc-btn-ticket {
+  width: 100%;
+  background-color: var(--ps-primary-light);
+  color: var(--ps-primary);
+  border: 1px solid var(--ps-primary);
+  padding: 0.6rem;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mc-btn-ticket:hover {
+  background-color: var(--ps-primary);
+  color: white;
+}

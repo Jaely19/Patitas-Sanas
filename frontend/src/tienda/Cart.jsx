@@ -1,75 +1,66 @@
 import React, { useContext } from 'react';
 import { CartContext } from './CartContext';
 import { useNavigate } from 'react-router-dom'; 
-import { jsPDF } from "jspdf"; // 1. Importamos la librería para el PDF
+import { jsPDF } from "jspdf";
+import { supabase } from '../supabase';
 import './Tienda.css';
 
 const Cart = () => {
-  // Asegúrate de extraer vaciarCarrito de tu contexto si lo tienes, para limpiar tras la compra
   const { carrito, eliminarDelCarrito } = useContext(CartContext);
   const navigate = useNavigate(); 
 
   const total = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
 
-  // 2. Función dedicada a construir y descargar el PDF
   const generarTicket = () => {
     const doc = new jsPDF();
     
-    // Encabezado del ticket
     doc.setFontSize(20);
     doc.text("Ticket de Compra", 105, 20, { align: "center" });
     
     doc.setFontSize(14);
     doc.text("Patitas Sanas", 105, 30, { align: "center" });
     
-    // Línea separadora
     doc.setLineWidth(0.5);
     doc.line(20, 35, 190, 35);
 
-    // Cabeceras de la tabla de productos
     doc.setFontSize(12);
     doc.text("Cant.", 20, 45);
     doc.text("Artículo", 40, 45);
     doc.text("Subtotal", 160, 45);
     
-    let y = 55; // Posición vertical inicial para la lista
+    let y = 55; 
     
-    // 3. Iteramos sobre tu estado 'carrito' para pintar cada producto
     carrito.forEach((item) => {
       doc.text(`${item.cantidad}`, 20, y);
       doc.text(`${item.nombre}`, 40, y);
       doc.text(`$${(item.precio * item.cantidad).toFixed(2)}`, 160, y);
-      y += 10; // Bajamos 10 unidades por cada producto
+      y += 10; 
     });
 
-    // Línea separadora final
     doc.line(20, y, 190, y);
     y += 10;
 
-    // Imprimir Total
     doc.setFontSize(14);
     doc.text(`Total Pagado: $${total.toFixed(2)}`, 160, y, { align: "right" });
 
-    // Imprimir Fecha
     const fecha = new Date().toLocaleString();
     doc.setFontSize(10);
     doc.text(`Fecha de emisión: ${fecha}`, 20, y + 20);
 
-    // Guardar el documento
     doc.save("ticket_patitas_sanas.pdf");
   };
 
-  // 4. Nueva función para procesar la acción del botón
-  const procesarPago = () => {
-    // Aquí puedes agregar la lógica para revisar si el usuario está autenticado.
-    // Por ejemplo, si tienes un estado 'usuarioLogueado':
-    // if (!usuarioLogueado) { navigate('/login'); return; }
+  // 👇 Lógica de validación actualizada
+  const procesarPago = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
 
-    // Si ya validaste que puede comprar:
-    generarTicket();
-    alert("¡Pago procesado con éxito! Se descargará tu ticket.");
-    
-    // Opcional: vaciarCarrito(); si tienes la función en tu CartContext
+    if (!session) {
+      // Sin sesión: Va al login, y luego el login lo empuja al portal-cliente
+      navigate('/login', { state: { returnTo: '/portal-cliente' } });
+    } else {
+      // Con sesión: Va directo al portal-cliente para finalizar la compra
+      navigate('/portal-cliente');
+    }
   };
 
   return (
@@ -100,9 +91,8 @@ const Cart = () => {
             <span>${total.toFixed(2)}</span>
           </div>
           
-          {/* 5. Actualizamos el botón para que ejecute la lógica del ticket */}
           <button className="btn-pagar" onClick={procesarPago}>
-            Pagar y Generar Ticket
+            Confirmar en mi Portal
           </button>
         </>
       )}
