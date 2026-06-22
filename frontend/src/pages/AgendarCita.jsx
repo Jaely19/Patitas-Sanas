@@ -1,14 +1,11 @@
 import { useState, useEffect } from 'react';
-// 👈 Agregamos useLocation
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../supabase';
 import './AgendarCita.css';
 
 function AgendarCita() {
   const navigate = useNavigate();
-  const location = useLocation(); // 👈 Leemos cómo llegó el usuario aquí
-  
-  // 👈 Detectamos si viene del panel de recepción (si no, asumimos que es un cliente)
+  const location = useLocation(); 
   const origen = location.state?.origen || 'cliente'; 
 
   const fechaActual = new Date();
@@ -51,9 +48,6 @@ function AgendarCita() {
     try {
       let idCliente = null;
       let correoParaCliente = null;
-
-      // 👈 LOGICA INTELIGENTE: Si es un cliente agendando desde su casa, usamos su correo.
-      // Si es la recepcionista, NO usamos su sesión, dejamos el correo en nulo por ahora.
       if (origen === 'cliente') {
         const { data: { session } } = await supabase.auth.getSession();
         correoParaCliente = session?.user?.email || null;
@@ -71,7 +65,6 @@ function AgendarCita() {
         }
       }
 
-      // Si no hay idCliente (es un cliente nuevo o lo está registrando la recepcionista)
       if (!idCliente) {
         const { data: clienteInsertado, error: errorCliente } = await supabase
           .from('clientes')
@@ -122,7 +115,6 @@ function AgendarCita() {
 
       alert(`¡Cita Agendada!\n\nPaciente: ${nombreMascota}\nFecha: ${diaSeleccionado} de ${meses[mesActual]} a las ${horaSeleccionada}`);
       
-      // 👈 REDIRECCIÓN INTELIGENTE: Regresa al usuario a donde pertenece
       if (origen === 'recepcion') {
         navigate('/recepcion');
       } else {
@@ -174,7 +166,6 @@ function AgendarCita() {
     <div className="agendar-wrapper">
       <div className="container">
         
-        {/* 👈 BOTÓN DE RETROCESO INTELIGENTE */}
         <Link 
           to={origen === 'recepcion' ? '/recepcion' : '/portal-cliente'} 
           style={{ color: '#012b81', textDecoration: 'none', fontWeight: 'bold', marginBottom: '20px', display: 'inline-block' }}

@@ -31,11 +31,9 @@ function Login() {
 
     setCargando(true);
     try {
-      // Capturamos la ruta de origen (si viene de la tienda) o usamos el portal por defecto
       const rutaDestino = location.state?.returnTo || '/portal-cliente';
 
       if (!isLogin) {
-        // FLUJO DE REGISTRO
         if (!nombreCompleto) {
           alert('Por favor ingresa tu nombre completo.');
           setCargando(false);
@@ -61,16 +59,11 @@ function Login() {
         if (errorCliente) throw errorCliente;
         
         alert('¡Cuenta creada con éxito!');
-        
-        // Si venía de la tienda lo regresamos a pagar, si no, a agendar su primera cita
         navigate(location.state?.returnTo ? rutaDestino : '/agendar-cita');
 
       } else {
-        // FLUJO DE INICIO DE SESIÓN UNIFICADO
         const { error } = await supabase.auth.signInWithPassword({ email: emailLimpio, password });
         if (error) throw error;
-
-        // ¿Es Veterinario?
         const { data: vet } = await supabase
           .from('veterinarios')
           .select('*')
@@ -82,7 +75,6 @@ function Login() {
           return;
         }
 
-        // ¿Es Recepcionista o Administrador?
         const { data: rec } = await supabase
           .from('recepcionistas')
           .select('*')
@@ -98,7 +90,6 @@ function Login() {
           return;
         }
 
-        // Cliente: Lo mandamos a la ruta de retorno (carrito) o a su portal
         navigate(rutaDestino);
       }
     } catch (error) {

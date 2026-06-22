@@ -12,8 +12,6 @@ export default function Medico() {
   const [citaSeleccionada, setCitaSeleccionada] = useState(null);
   const [historialMascota, setHistorialMascota] = useState([]);
   const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date());
-  
-  // Agregamos "nombre_cliente" y "costo_consulta" al estado del formulario
   const [formulario, setFormulario] = useState({
     nombre_cliente: "", peso_kg: "", temperatura_c: "", costo_consulta: "",
     sintomas: "", diagnostico: "", tratamiento: "", notas_adicionales: "",
@@ -21,7 +19,6 @@ export default function Medico() {
   const [mensaje, setMensaje] = useState("");
 
   useEffect(() => {
-    // MODO DESARROLLO
     const mockVeterinario = {
       id_veterinario: 1, 
       email: "vetalejandro@gmail.com",
@@ -75,7 +72,6 @@ export default function Medico() {
 
       if (!error && data) {
         setHistorialMascota(data);
-        // Devolvemos el formulario a su estado en blanco al entrar a cualquier cita
         setFormulario({ 
           nombre_cliente: "",
           peso_kg: "", 
@@ -123,7 +119,7 @@ export default function Medico() {
     if (!citaSeleccionada) return;
     const doc = new jsPDF('p', 'mm', 'a4');
     
-    // --- 1. Cabecera Izquierda ---
+    // Cabecera Izquierda 
     doc.setFontSize(22);
     doc.setFont("helvetica", "bold");
     doc.text("Patitas Sanas", 20, 30);
@@ -134,7 +130,7 @@ export default function Medico() {
     doc.text("VETERINARIOS", 20, 43);
     doc.text("Los reyes la paz, Estado de México", 20, 48);
 
-    // --- 2. Cabecera Derecha (Recuadros del Ticket) ---
+    // Cabecera Derecha (Recuadros del Ticket) 
     doc.setLineWidth(0.5);
     doc.roundedRect(120, 20, 70, 25, 3, 3); // Caja principal
     doc.line(120, 28, 190, 28); 
@@ -154,15 +150,13 @@ export default function Medico() {
     doc.setFontSize(10);
     doc.text(`FECHA: ${new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}`, 155, 52, { align: "center" });
 
-    // --- 3. Información del Cliente / Paciente / Médico (Recuadro Principal Ajustado) ---
+    // Información del Cliente / Paciente / Médico.
     doc.roundedRect(20, 60, 170, 22, 3, 3);
     
     // Fila 1: Cliente y Médico
     doc.setFont("helvetica", "bold");
     doc.text("CLIENTE:", 25, 68);
     doc.setFont("helvetica", "normal");
-    
-    // Leemos el nombre directamente del formulario digitado
     const dueno = formulario.nombre_cliente || "Público en General";
     doc.text(dueno, 46, 68);
     
@@ -182,7 +176,7 @@ export default function Medico() {
     doc.setFont("helvetica", "normal");
     doc.text("En Recepción", 149, 76);
 
-    // --- 4. Datos Médicos (Receta) ---
+    // Datos Médicos (Receta) 
     doc.setFont("helvetica", "bold");
     doc.text("DATOS MÉDICOS", 20, 92); 
     doc.setLineWidth(0.2);
@@ -199,7 +193,7 @@ export default function Medico() {
     doc.setFont("helvetica", "normal");
     doc.text(formulario.treatment || formulario.tratamiento || 'N/A', 45, 117, { maxWidth: 145 });
 
-    // --- 5. Tabla de Cobro ---
+    // 5. Tabla de Cobro 
     const tableY = 145; 
     doc.setLineWidth(0.5);
     doc.rect(20, tableY, 170, 8); 
@@ -223,7 +217,7 @@ export default function Medico() {
     doc.text(`$${costoTotal.toFixed(2)}`, 150, tableY + 13, { align: "center" });
     doc.text(`$${costoTotal.toFixed(2)}`, 175, tableY + 13, { align: "center" });
 
-    // --- 6. Totales y Desglose ---
+    // 6. Totales y Desglose 
     const subtotal = costoTotal / 1.16; 
     const iva = costoTotal - subtotal;
 
@@ -248,7 +242,6 @@ export default function Medico() {
     doc.setFont("helvetica", "bold");
     doc.text(`$${costoTotal.toFixed(2)}`, 187, totalsY + 21.5, { align: "right" });
 
-    // --- 7. Textos legales ---
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
@@ -412,9 +405,8 @@ export default function Medico() {
               </div>
 
               <div className="vet-form-box">
-                <h3>📝 Redactar Consulta Actual</h3>
+                <h3> Redactar Consulta Actual</h3>
                 
-                {/* Campo para escribir el nombre del Cliente a mano */}
                 <input 
                   type="text" 
                   placeholder="Nombre del Dueño / Cliente" 

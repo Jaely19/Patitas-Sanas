@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './DashVet.css'; // Importamos tu archivo de estilos
+import './DashVet.css'; 
 
-// 1. Datos de prueba (Mock Data) para la demo
+
 const initialAppointments = [
   { id: 1, time: '11:00 AM', type: 'Consulta General', typeClass: 'badge-consulta', name: 'Toby', owner: 'Carlos Gómez', reason: 'Revisión de orejas (posible otitis)', isCompleted: false },
   { id: 2, time: '12:00 PM', type: 'Cirugía / Procedimiento', typeClass: 'badge-cirugia', name: 'Mika', owner: 'Ana Soto', reason: 'Limpieza dental profunda (Profilaxis)', isCompleted: false },
@@ -14,22 +14,14 @@ const initialAppointments = [
 
 export const DashVet = () => {
   const navigate = useNavigate();
-  
-  // 2. Estados (Variables que React vigila)
   const [appointments, setAppointments] = useState(initialAppointments);
   const [completedCount, setCompletedCount] = useState(0);
-
-  // 3. Función para completar una cita
   const handleFinishTask = (id) => {
-    // Actualizamos la cita específica cambiando su estado isCompleted a true
     setAppointments(appointments.map(app => 
       app.id === id ? { ...app, isCompleted: true } : app
     ));
-    // Sumamos 1 al contador
     setCompletedCount(prev => prev + 1);
   };
-
-  // Función para cerrar sesión y volver al login
   const handleLogout = () => {
     navigate('/login');
   };
@@ -66,7 +58,6 @@ export const DashVet = () => {
           </div>
           <div className="stat-card">
             <h4>Completadas</h4>
-            {/* padStart asegura que siempre se vean 2 dígitos (ej: 01, 02) */}
             <div className="value">{completedCount.toString().padStart(2, '0')}</div>
           </div>
         </div>
@@ -77,8 +68,6 @@ export const DashVet = () => {
             Cronograma del Día 
             <span className="date-label">Jueves, 16 de Abril, 2026</span>
           </h2>
-
-          {/* 4. Dibujamos las citas usando .map() */}
           {appointments.map((app) => (
             <div 
               key={app.id} 

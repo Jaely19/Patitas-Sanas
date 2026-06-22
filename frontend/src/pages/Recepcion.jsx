@@ -9,15 +9,13 @@ export const Recepcion = () => {
   const [agenda, setAgenda] = useState([]);
   const [ingresosTotales, setIngresosTotales] = useState(0);
   const [citasAtendidas, setCitasAtendidas] = useState(0);
-  const [alertasStock, setAlertasStock] = useState(0); // NUEVO: Estado dinámico para el stock
+  const [alertasStock, setAlertasStock] = useState(0); 
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     fetchCitasPorFecha(fechaSeleccionada);
-    fetchAlertasStock(); // NUEVO: Llamada automática al cargar la vista
+    fetchAlertasStock(); 
   }, [fechaSeleccionada]);
-
-  // NUEVO: Función para traer y contar las alertas de stock reales
   const fetchAlertasStock = async () => {
     try {
       const { data, error } = await supabase
@@ -27,7 +25,6 @@ export const Recepcion = () => {
       if (error) throw error;
 
       if (data) {
-        // Filtramos y contamos cuántos productos están por debajo o igual al mínimo
         const productosConAlerta = data.filter(prod => prod.cantidad <= prod.stock_minimo);
         setAlertasStock(productosConAlerta.length);
       }
@@ -206,7 +203,6 @@ export const Recepcion = () => {
             <div className="value">{agenda.length}</div>
           </div>
           
-          {/* MODIFICADO: Ahora el valor de las alertas es 100% dinámico */}
           <div className="stat-card red" style={{ cursor: 'pointer' }} onClick={() => navigate('/inventario')}>
             <h4>ALERTAS DE STOCK</h4>
             <div className="value">{alertasStock}</div>

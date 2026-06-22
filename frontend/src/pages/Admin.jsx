@@ -33,12 +33,12 @@ export const Admin = () => {
   };
 
   useEffect(() => {
-    // Si cambiamos de sección, cargamos lo necesario
+    // Si cambiamos de seccion, cargamos lo necesario
     if (seccionActiva === 'personal') fetchPersonal();
     if (seccionActiva === 'pacientes') fetchPacientes();
   }, [seccionActiva]);
 
-  // --- FUNCIONES DE PERSONAL ---
+  // Funciones del personal
   const fetchPersonal = async () => {
     setCargandoPersonal(true);
     try {

@@ -22,8 +22,6 @@ function Citas() {
       if (!session) return navigate('/login');
 
       const correo = session.user.email;
-
-      // Buscar clientes con ese correo
       const { data: clientes, error: errorClientes } = await supabase
         .from('clientes')
         .select('id_cliente')
@@ -37,8 +35,6 @@ function Citas() {
       }
 
       const idsClientes = clientes.map(c => c.id_cliente);
-
-      // Buscar mascotas de esos clientes
       const { data: mascotas, error: errorMascotas } = await supabase
         .from('mascotas')
         .select('id_mascota, nombre, especie')
@@ -52,8 +48,6 @@ function Citas() {
       }
 
       const idsMascotas = mascotas.map(m => m.id_mascota);
-
-      // Buscar citas de esas mascotas
       const { data: citasData, error: errorCitas } = await supabase
         .from('citas')
         .select('*')

@@ -8,10 +8,7 @@ export const MisCompras = () => {
   const [compras, setCompras] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // 👇 1. Agregamos un estado para guardar el nombre real del cliente
   const [nombreCliente, setNombreCliente] = useState('');
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,8 +21,6 @@ export const MisCompras = () => {
         setLoading(false);
         return;
       }
-
-      // 👇 2. Consultamos la tabla clientes para obtener el nombre
       const { data: clienteData } = await supabase
         .from('clientes')
         .select('nombre_completo')
@@ -35,10 +30,9 @@ export const MisCompras = () => {
       if (clienteData) {
         setNombreCliente(clienteData.nombre_completo);
       } else {
-        setNombreCliente('Cliente de Patitas Sanas'); // Fallback por si acaso
+        setNombreCliente('Cliente de Patitas Sanas'); 
       }
 
-      // 3. Consultamos los pedidos
       const { data, error: dbError } = await supabase
         .from('pedidos')
         .select(`
@@ -68,13 +62,12 @@ export const MisCompras = () => {
     cargarHistorial();
   }, []);
 
+  /*Generador de Ticktes*/
   const descargarTicket = (pedido) => {
     const doc = new jsPDF();
 
-    // --- CONFIGURACIÓN DE FUENTE ---
     doc.setFont("helvetica");
 
-    // --- 1. CABECERA ---
     doc.setFontSize(24);
     doc.setFont("helvetica", "bold");
     doc.text("Patitas Sanas", 20, 25);
@@ -107,35 +100,28 @@ export const MisCompras = () => {
     doc.setFont("helvetica", "normal");
     doc.text(`FECHA: ${fechaFormat}`, 160, 45, { align: "center" });
 
-    // --- 2. DATOS DEL CLIENTE ---
+    // Datos del cliente 
     doc.roundedRect(20, 50, 170, 15, 3, 3);
     
     doc.setFont("helvetica", "bold");
     doc.text("CLIENTE:", 25, 59);
     doc.setFont("helvetica", "normal");
-    
-    // 👇 4. Inyectamos el nombre real del cliente en mayúsculas
     doc.text(nombreCliente.toUpperCase(), 45, 59); 
-
     doc.setFont("helvetica", "bold");
     doc.text("FORMA DE PAGO:", 115, 59);
     doc.setFont("helvetica", "normal");
     
-    // 👇 5. Establecemos el pago en efectivo
+    // Establecemos el pago en efectivo
     doc.text("Efectivo (En Sucursal)", 148, 59);
-
-    // --- 3. CABECERA DE LA TABLA ---
     let startY = 75;
     doc.setLineWidth(0.5);
     doc.rect(20, startY, 170, 8); 
-    
     doc.setFont("helvetica", "bold");
     doc.text("CANT.", 35, startY + 5.5, { align: "center" });
     doc.text("DESCRIPCIÓN", 55, startY + 5.5);
     doc.text("P. UNIT", 140, startY + 5.5);
     doc.text("IMPORTE", 165, startY + 5.5);
 
-    // --- 4. CONTENIDO DE LA TABLA ---
     doc.setFont("helvetica", "normal");
     let currentY = startY + 14;
     
@@ -161,8 +147,6 @@ export const MisCompras = () => {
     doc.line(50, startY, 50, currentY);   
     doc.line(135, startY, 135, currentY); 
     doc.line(160, startY, 160, currentY); 
-
-    // --- 5. PIE DE PÁGINA (RESUMEN FINANCIERO) ---
     const total = pedido.total;
     const subtotal = total / 1.16;
     const iva = total - subtotal;

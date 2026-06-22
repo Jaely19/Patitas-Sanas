@@ -8,8 +8,6 @@ export const Inventario = () => {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [filtroCategoria, setFiltroCategoria] = useState('Todos');
-
-  // NUEVO: Estados para manejar el formulario de nuevo producto
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [nuevoProducto, setNuevoProducto] = useState({
     nombre: '',
@@ -66,11 +64,8 @@ export const Inventario = () => {
     }
   };
 
-  // NUEVO: Función para guardar un nuevo producto en Supabase
   const handleAgregarProducto = async (e) => {
-    e.preventDefault(); // Evita que la página se recargue
-
-    // Validación básica
+    e.preventDefault(); 
     if (!nuevoProducto.nombre || !nuevoProducto.unidad) {
       alert("Por favor, llena el nombre y la unidad del producto.");
       return;
@@ -90,8 +85,6 @@ export const Inventario = () => {
       if (error) throw error;
 
       alert("Producto agregado exitosamente al inventario.");
-      
-      // Ocultar formulario, limpiar campos y recargar tabla
       setMostrarFormulario(false);
       setNuevoProducto({ nombre: '', categoria: 'Medicamentos', cantidad: 0, unidad: '', stock_minimo: 5 });
       fetchInventario(); 
@@ -161,7 +154,6 @@ export const Inventario = () => {
                   </select>
                 </div>
                 
-                {/* NUEVO: Botón para abrir/cerrar el formulario */}
                 <button 
                   onClick={() => setMostrarFormulario(!mostrarFormulario)}
                   style={{ background: mostrarFormulario ? '#dc3545' : 'var(--primary)', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
@@ -171,7 +163,6 @@ export const Inventario = () => {
               </div>
             </div>
 
-            {/* NUEVO: Formulario desplegable */}
             {mostrarFormulario && (
               <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #e9ecef' }}>
                 <h3 style={{ marginTop: 0, marginBottom: '15px', color: 'var(--primary)' }}>Registrar Nuevo Producto</h3>

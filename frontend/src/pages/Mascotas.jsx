@@ -50,9 +50,7 @@ function Mascotas() {
     setEdad(mascota.edad || '');
     setCaracteristicas(mascota.caracteristicas || ''); 
     setIdMascotaEditando(mascota.id_mascota);
-    setMostrarFormulario(true); // Abrir formulario al editar
-    
-    // Hacer scroll suave hacia el formulario
+    setMostrarFormulario(true); 
     setTimeout(() => {
       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }, 100);
@@ -67,7 +65,7 @@ function Mascotas() {
     setFoto(null);
     document.getElementById('foto-input').value = '';
     setIdMascotaEditando(null);
-    setMostrarFormulario(false); // Cerramos el formulario al cancelar
+    setMostrarFormulario(false); 
   };
 
   const guardarMascota = async () => {
@@ -121,7 +119,7 @@ function Mascotas() {
         alert('¡Mascota guardada con éxito!');
       }
       
-      cancelarEdicion(); // Esto limpia y cierra el formulario
+      cancelarEdicion(); 
       obtenerClienteYMascotas();
 
     } catch (error) {
@@ -136,8 +134,6 @@ function Mascotas() {
     <div className="masc-wrap">
       <div className="masc-modal">
         <h2>Mis Mascotas</h2>
-
-        {/* LISTADO DE CREDENCIALES EN CUADRÍCULA */}
         {mascotas.length === 0 ? (
           <p className="masc-empty">No hay mascotas registradas aún. ¡Registra a tu primer peludito!</p>
         ) : (
@@ -207,19 +203,15 @@ function Mascotas() {
         )}
 
         <hr style={{ border: 'none', borderTop: '2px dashed #e0e0e0', margin: '30px 0' }} />
-
-        {/* BOTÓN DESPLEGABLE PARA MOSTRAR/OCULTAR FORMULARIO */}
         <button 
           className="btn-toggle-form" 
           onClick={() => {
             setMostrarFormulario(!mostrarFormulario);
-            if(idMascotaEditando) cancelarEdicion(); // Si cierra el form, cancelamos la edición
+            if(idMascotaEditando) cancelarEdicion(); 
           }}
         >
           {mostrarFormulario ? '▲ Ocultar Formulario' : '➕ Agregar Nueva Mascota'}
         </button>
-
-        {/* FORMULARIO CONDICIONAL (SOLO SE MUESTRA SI mostrarFormulario ES TRUE) */}
         {mostrarFormulario && (
           <div className="masc-form-box">
             <h3 style={{ textAlign: 'center', color: '#1a2a6c', marginTop: 0 }}>

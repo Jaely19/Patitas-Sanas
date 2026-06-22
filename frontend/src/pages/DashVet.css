@@ -9,7 +9,6 @@
     --success: #27ae60;
 }
 
-/* BARRA LATERAL (SIDEBAR) */
 .vet-wrapper { display: flex; min-height: 100vh; font-family: 'Nunito Sans', sans-serif; background-color: var(--bg); color: var(--text); }
 
 .vet-sidebar {
@@ -68,8 +67,6 @@
 }
 .schedule-row:hover { background-color: #f9fbff; }
 .schedule-row:last-child { border-bottom: none; }
-
-/* CLASE AÑADIDA PARA REACT: Cuando la tarea se completa */
 .schedule-row.completed {
     opacity: 0.4;
     pointer-events: none;
@@ -78,8 +75,6 @@
 .time-col { font-weight: 700; font-size: 1.1rem; color: var(--primary); }
 .info-col h4 { font-size: 1.2rem; margin-bottom: 5px; margin-top: 5px;}
 .info-col p { color: #555; margin: 0; }
-
-/* ETIQUETAS DE TIPO */
 .badge {
     padding: 5px 12px;
     border-radius: 20px;
@@ -104,8 +99,6 @@
     transition: 0.3s;
 }
 .btn-check:hover { opacity: 0.8; transform: scale(1.05); }
-
-/* CLASE AÑADIDA PARA REACT: Botón presionado */
 .btn-check.completed { background: #bdc3c7; }
 
 @media (max-width: 900px) {
