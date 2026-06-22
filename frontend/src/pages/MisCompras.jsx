@@ -83,7 +83,7 @@ export const MisCompras = () => {
     doc.setFont("helvetica", "normal");
     doc.text("VENTA DE PRODUCTOS Y SERVICIOS", 20, 32);
     doc.text("VETERINARIOS", 20, 37);
-    doc.text("Av. Juan de Dios Bátiz s/n, Gustavo A. Madero", 20, 42);
+    doc.text("Los reyes la paz, Estado de México", 20, 42);
 
     doc.setLineWidth(0.5);
     doc.roundedRect(130, 15, 60, 25, 3, 3); 

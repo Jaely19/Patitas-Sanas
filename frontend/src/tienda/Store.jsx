@@ -9,11 +9,7 @@ import './Tienda.css';
 const Store = () => {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-  // Estado para controlar si vemos el catálogo o el ticket
   const [mostrarTicket, setMostrarTicket] = useState(false);
-
-  // Extraemos el carrito para contar los artículos
   const { carrito } = useContext(CartContext);
   const totalArticulos = carrito.reduce((acc, item) => acc + item.cantidad, 0);
 
@@ -56,8 +52,6 @@ const Store = () => {
         </button>
         
       </div>
-
-      {/* RENDERIZADO CONDICIONAL DE LA VISTA */}
       {mostrarTicket ? (
         <div className="ticket-centrado">
           <Cart />

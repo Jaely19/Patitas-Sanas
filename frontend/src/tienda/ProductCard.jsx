@@ -2,7 +2,6 @@ import React, { useContext } from 'react';
 import { CartContext } from './CartContext';
 
 const ProductCard = ({ producto }) => {
-  // Extraemos decrementarCantidad del contexto
   const { carrito, agregarAlCarrito, decrementarCantidad } = useContext(CartContext);
 
   const itemEnCarrito = carrito.find(item => item.id === producto.id);
