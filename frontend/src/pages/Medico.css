@@ -250,3 +250,70 @@
 .btn-pdf { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
 .form-msg { margin-top: 15px; font-weight: bold; color: var(--primary); }
+
+/* SELECTOR DE FECHA (CALENDARIO) */
+.agenda-header-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.calendar-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: inherit;
+    color: var(--primary);
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+    transition: 0.3s;
+    background-color: var(--white);
+}
+
+.calendar-input:focus {
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 2px rgba(60, 202, 255, 0.2);
+}
+
+/* BOTÓN DE CANCELAR Y ETIQUETA */
+.btn-cancelar {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+    margin-left: 10px;
+}
+
+.btn-cancelar:hover:not(:disabled) {
+    background: rgba(231, 76, 60, 0.1);
+}
+
+.btn-cancelar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: #ccc;
+    color: #ccc;
+}
+
+.badge-cancelada { 
+    background: #ffebee; 
+    color: #c62828; 
+}
+
+.action-col {
+    display: flex;
+    align-items: center;
+}
+
+/* AJUSTE PARA 3 COLUMNAS EN EL FORMULARIO (Peso, Temp, Precio) */
+.form-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}

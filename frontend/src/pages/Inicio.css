@@ -62,9 +62,9 @@
 .landing-wrapper .btn-contacto:hover { background-color: var(--accent-color); }
 
 .landing-wrapper .hero {
-  background: linear-gradient(to right, rgba(1, 43, 129, 0.8), rgba(1, 43, 129, 0.6)), url('https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=1200&q=80') center/cover;
+  background: linear-gradient(to right, rgba(1, 43, 129, 0.8), rgba(1, 43, 129, 0.6)), url('fotos/pg.jpg') center/cover;
   color: #fff;
-  padding: 100px 0;
+  padding: 140px 0;
   text-align: center;
 }
 .landing-wrapper .hero h1 { color: #fff; font-size: 3rem; margin-bottom: 20px; }

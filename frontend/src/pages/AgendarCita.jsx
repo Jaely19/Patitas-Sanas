@@ -255,9 +255,9 @@ function AgendarCita() {
                 <label>Tipo de Servicio</label>
                 <select value={servicio} onChange={e => setServicio(e.target.value)}>
                   <option value="Consulta General">Consulta General</option>
-                  <option value="Oncología">Oncología</option>
-                  <option value="Cirugía / Ortopedia">Cirugía / Ortopedia</option>
-                  <option value="Medicina Interna">Medicina Interna</option>
+                  <option value="Vacunacion y Desparasitacion">Vacunación y Desparasitación</option>
+                  <option value="Estudios de Laboratorio">Estudios de Laboratorio</option>
+                  <option value="Estetica Basica">Estética Básica</option>
                 </select>
               </div>
               <div className="input-group">

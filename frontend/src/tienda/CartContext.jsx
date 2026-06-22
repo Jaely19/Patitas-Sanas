@@ -3,13 +3,11 @@ import React, { createContext, useState, useEffect } from 'react';
 export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  // 1. Al iniciar, verificamos si hay un carrito guardado en el navegador
   const [carrito, setCarrito] = useState(() => {
     const carritoGuardado = localStorage.getItem('carritoPatitasSanas');
     return carritoGuardado ? JSON.parse(carritoGuardado) : [];
   });
 
-  // 2. Cada vez que 'carrito' cambie, actualizamos el almacenamiento local
   useEffect(() => {
     localStorage.setItem('carritoPatitasSanas', JSON.stringify(carrito));
   }, [carrito]);
@@ -25,19 +23,33 @@ export const CartProvider = ({ children }) => {
       return [...prevCarrito, { ...producto, cantidad: 1 }];
     });
   };
+  const decrementarCantidad = (id) => {
+    setCarrito((prevCarrito) => {
+      const itemExistente = prevCarrito.find(item => item.id === id);
+      if (itemExistente) {
+        if (itemExistente.cantidad > 1) {
+          return prevCarrito.map(item =>
+            item.id === id ? { ...item, cantidad: item.cantidad - 1 } : item
+          );
+        } else {
+          return prevCarrito.filter(item => item.id !== id); 
+        }
+      }
+      return prevCarrito;
+    });
+  };
 
   const eliminarDelCarrito = (id) => {
     setCarrito((prevCarrito) => prevCarrito.filter(item => item.id !== id));
   };
 
-  // 3. Función para limpiar el carrito una vez que se paga en el portal
   const vaciarCarrito = () => {
     setCarrito([]);
     localStorage.removeItem('carritoPatitasSanas');
   };
 
   return (
-    <CartContext.Provider value={{ carrito, agregarAlCarrito, eliminarDelCarrito, vaciarCarrito }}>
+    <CartContext.Provider value={{ carrito, agregarAlCarrito, decrementarCantidad, eliminarDelCarrito, vaciarCarrito }}>
       {children}
     </CartContext.Provider>
   );

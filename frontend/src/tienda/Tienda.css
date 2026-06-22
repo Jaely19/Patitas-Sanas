@@ -1,105 +1,185 @@
-/* =========================================
-   1. ESTILOS PRINCIPALES (Catálogo y Tarjetas)
-   ========================================= */
+/*1. ESTILOS PRINCIPALES (Catálogo y Tarjetas)*/
 .tienda-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px 20px;
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 .tienda-titulo {
-  font-size: 1.8rem; /* Ajustado para la barra */
-  color: #333;
-  margin: 0; /* Sin margen inferior */
+  font-size: 1.8rem; 
+  color: #060772;
+  margin: 0; 
   text-align: center;
+  font-weight: 700;
 }
 
 .grid-productos {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 30px;
+  padding-top: 20px;
 }
 
 .producto-card {
-  border: 1px solid #eaeaea;
-  border-radius: 12px;
+  border: none;
+  border-radius: 16px;
   padding: 20px;
   background: #ffffff;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-  transition: transform 0.2s ease;
+  box-shadow: 0 8px 24px rgba(17, 134, 13, 0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
 }
 
 .producto-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+.producto-imagen-container {
+  position: relative;
+  width: 100%;
 }
 
 .producto-imagen {
   width: 100%;
-  height: 200px;
+  height: 220px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 12px;
   margin-bottom: 15px;
-  background-color: #f5f5f5;
+  background-color: #0b56a1;
+}
+
+.producto-stock-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: rgba(16, 52, 211, 0.95);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  backdrop-filter: blur(4px);
+  letter-spacing: 0.5px;
+}
+
+.producto-stock-badge.agotado {
+  background-color: rgba(168, 11, 27, 0.95);
 }
 
 .producto-info h3 {
   margin: 0 0 10px 0;
-  font-size: 1.25rem;
-  color: #222;
+  font-size: 1.3rem;
+  color: #000000;
+  font-weight: 600;
+  text-align: center; 
 }
 
 .producto-info p {
   margin: 0 0 15px 0;
-  color: #666;
+  color: #000000;
   font-size: 0.95rem;
-  line-height: 1.4;
+  line-height: 1.5;
+  text-align: center;
 }
 
 .producto-precio {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--accent-color, #f39c12); 
-  margin-bottom: 15px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--accent-color, #e26b09e3); 
+  margin-bottom: 20px;
+  text-align: center; 
 }
 
 .btn-agregar {
-  background-color: var(--accent-color, #f39c12);
+  background-color: var(--accent-color, #df4e0b);
   color: white;
   border: none;
-  padding: 12px;
-  border-radius: 6px;
+  padding: 14px;
+  border-radius: 10px;
   cursor: pointer;
-  font-weight: bold;
-  font-size: 1rem;
+  font-weight: 700;
+  font-size: 1.05rem;
   width: 100%;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.25);
 }
 
-.btn-agregar:hover {
-  opacity: 0.9;
+.btn-agregar:hover:not(:disabled) {
+  background-color: #e06f0c;
+  box-shadow: 0 6px 16px rgba(221, 142, 14, 0.4);
+  transform: translateY(-2px);
 }
 
-/* =========================================
-   2. BARRA DE NAVEGACIÓN Y BOTONES
-   ========================================= */
+.btn-disabled {
+  background-color: #dfe6e9 !important;
+  color: #b2bec3 !important;
+  cursor: not-allowed;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.contador-contenedor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f1f2f6;
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+}
+
+.btn-contador {
+  background-color: #ffffff;
+  color: #2c3e50;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.btn-contador:hover:not(:disabled) {
+  background-color: var(--accent-color, #000000);
+  color: white;
+}
+
+.btn-contador:disabled {
+  background-color: #e4e7eb;
+  color: #cbd5e1;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.cantidad-contador {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  min-width: 30px;
+  text-align: center;
+}
+
+/*BARRA DE NAVEGACIÓN Y BOTONES*/
 .navegacion-tienda {
-  /* Propiedades mágicas para que flote al hacer scroll */
   position: sticky;
   top: 0;
   z-index: 100;
-  
-  /* Color de fondo para tapar los productos al bajar */
-  background-color: #f4f7f8; 
-  
-  /* Margen interno y sombra */
+  background-color: #fdfdfd; 
   padding: 15px 20px;
   margin: -40px -20px 30px -20px; 
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 10px rgba(218, 9, 9, 0.05);
 }
 
 .flex-nav {
@@ -128,7 +208,7 @@
 }
 
 .btn-ver-carrito {
-  background-color: #28a745;
+  background-color: #109c31;
   color: white;
   border: none;
   padding: 12px 24px;
@@ -145,9 +225,7 @@
   transform: translateY(-2px);
 }
 
-/* =========================================
-   3. ESTILOS DEL TICKET Y CARRITO
-   ========================================= */
+/* ESTILOS DEL TICKET Y CARRITO */
 .ticket-centrado {
   max-width: 500px;
   margin: 0 auto;
@@ -224,7 +302,7 @@
 
 .item-subtotal {
   font-weight: bold;
-  color: #f39c12; 
+  color: #020202; 
 }
 
 .btn-quitar {

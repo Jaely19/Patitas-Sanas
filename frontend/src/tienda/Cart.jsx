@@ -49,23 +49,19 @@ const Cart = () => {
 
     doc.save("ticket_patitas_sanas.pdf");
   };
-
-  // 👇 Lógica de validación actualizada
   const procesarPago = async () => {
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
-      // Sin sesión: Va al login, y luego el login lo empuja al portal-cliente
       navigate('/login', { state: { returnTo: '/portal-cliente' } });
     } else {
-      // Con sesión: Va directo al portal-cliente para finalizar la compra
       navigate('/portal-cliente');
     }
   };
 
   return (
     <div className="ticket-container">
-      <h2>Ticket de Compra 🛒</h2>
+      <h2>Ticket de Compra </h2>
       
       {carrito.length === 0 ? (
         <p className="carrito-vacio">El ticket está vacío. Agrega productos para comenzar.</p>

@@ -8,17 +8,11 @@ function PortalCliente() {
   const [usuarioNombre, setUsuarioNombre] = useState('');
   const [usuarioId, setUsuarioId] = useState(null); 
   const [cargando, setCargando] = useState(true);
-  
-  // Nuevos estados para los KPIs
   const [totalMascotas, setTotalMascotas] = useState(0);
   const [citasPendientes, setCitasPendientes] = useState(0);
-  
-  // 👇 Usamos exclusivamente 'carrito' y 'vaciarCarrito' del contexto
   const { carrito, vaciarCarrito } = useContext(CartContext);
-  
   const [procesandoPago, setProcesandoPago] = useState(false);
   const [errorPago, setErrorPago] = useState(null);
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -95,14 +89,12 @@ function PortalCliente() {
   };
 
   const handleConfirmarPago = async () => {
-    // 👇 Cambiamos 'cart' por 'carrito'
     if (carrito.length === 0) return;
     
     setProcesandoPago(true);
     setErrorPago(null);
 
     try {
-      // 👇 Cambiamos 'cart' por 'carrito'
       const itemsPayload = carrito.map(item => ({
         id: Number(item.id), 
         cantidad: item.cantidad,
@@ -116,8 +108,6 @@ function PortalCliente() {
       });
 
       if (rpcError) throw rpcError;
-
-      // 👇 Usamos la función en español para vaciar
       vaciarCarrito();
       alert('¡Compra realizada con éxito! 🐾 Tu pedido ha sido registrado.');
       
@@ -141,11 +131,11 @@ function PortalCliente() {
       <aside className="portal-sidebar">
         <h2>Patitas<span>Sanas</span></h2>
         <ul className="portal-nav-menu">
-          <li><Link to="/portal-cliente" className="active">🏠 Inicio</Link></li>
-          <li><Link to="/mis-mascotas">🐾 Mis Mascotas</Link></li>
-          <li><Link to="/mis-citas">📅 Mis Citas</Link></li>
-          <li><Link to="/mis-compras">🛍️ Mis Compras</Link></li>
-          <li><Link to="/agendar-cita">➕ Agendar Cita</Link></li>
+          <li><Link to="/portal-cliente" className="active"> Inicio</Link></li>
+          <li><Link to="/mis-mascotas"> Mis Mascotas</Link></li>
+          <li><Link to="/mis-citas"> Mis Citas</Link></li>
+          <li><Link to="/mis-compras"> Mis Compras</Link></li>
+          <li><Link to="/agendar-cita"> Agendar Cita</Link></li>
         </ul>
       </aside>
 
@@ -153,7 +143,7 @@ function PortalCliente() {
         
         <div className="portal-header-main">
           <div>
-            <h1>¡Hola, {usuarioNombre}! 🐾</h1>
+            <h1>¡Hola, {usuarioNombre}! </h1>
             <p>¿Qué haremos hoy por tus mejores amigos?</p>
           </div>
           <button onClick={handleLogout} className="btn-logout">Cerrar Sesión</button>
@@ -174,17 +164,15 @@ function PortalCliente() {
           </div>
           <div className="stat-card">
             <h4>ARTÍCULOS</h4>
-            {/* 👇 Cambiamos 'cart' por 'carrito' */}
             <div className="value">{carrito ? carrito.length : 0}</div>
           </div>
         </div>
 
-        {/* 👇 Cambiamos 'cart' por 'carrito' para la validación */}
+        
         {carrito && carrito.length > 0 && (
           <section className="cart-summary">
             <h2>Resumen de tu Compra 🛒</h2>
             <ul className="cart-list">
-              {/* 👇 Cambiamos 'cart' por 'carrito' en el map */}
               {carrito.map((item) => (
                 <li key={item.id}>
                   <span>{item.nombre} <small>(x{item.cantidad})</small></span>
@@ -209,9 +197,8 @@ function PortalCliente() {
           </section>
         )}
 
-        {/* === NUEVA SECCIÓN DE SUGERENCIAS DE CUIDADO === */}
         <section className="pet-care-tips">
-          <h2>7 cuidados que debes tener con las mascotas y los niños 🐾👧👦</h2>
+          <h2>Cuidados que debes tener con las mascotas y los niños </h2>
           
           <div className="tips-grid">
             <div className="tip-card">

@@ -76,15 +76,15 @@ function Inicio() {
           <div>
             <h3>Contacto</h3>
             <p>Teléfono: 55 3631 7711</p>
-            <p>Email: hola@patitassanas.mx</p>
+            <p>Email: vetatitassanas@gmail.com</p>
           </div>
           <div>
             <h3>Ubicación</h3>
-            <p>Nos encontramos dentro del "Hospital para Mascotas Ixtacala", Avenida de los Barrios #220, Los Reyes Iztacala, Tlalnepantla de Baz, Estado de México.</p>
+            <p>Los Reyes la paz, Estado de México.</p>
           </div>
         </div>
         <div className="footer-bottom">
-          <p>Copyright © 2026 Consultorio Veterinario Patitas Sanas. Todos los derechos reservados.</p>
+          <p>Proyecto Consultorio Veterinario Patitas Sanas. Escuela Superior de Computo, Instituto Politécnico Nacional.</p>
         </div>
       </footer>
     </div>

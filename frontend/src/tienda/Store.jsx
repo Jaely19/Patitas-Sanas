@@ -39,7 +39,7 @@ const Store = () => {
   return (
     <div className="tienda-container">
       
-      {/* BARRA SUPERIOR DE NAVEGACIÓN (Pegajosa) */}
+      
       <div className="navegacion-tienda flex-nav">
         
         <Link to="/" className="btn-volver">← Volver al Inicio</Link>
