@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabase';
 import './DashRec.css';
+
 export const Recepcion = () => {
   const navigate = useNavigate();
 
@@ -13,58 +13,47 @@ export const Recepcion = () => {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
+    const sesionActual = localStorage.getItem('currentUser');
+    if (!sesionActual) navigate('/login');
+
     fetchCitasPorFecha(fechaSeleccionada);
     fetchAlertasStock(); 
   }, [fechaSeleccionada]);
-  const fetchAlertasStock = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('inventario')
-        .select('cantidad, stock_minimo');
 
-      if (error) throw error;
-
-      if (data) {
-        const productosConAlerta = data.filter(prod => prod.cantidad <= prod.stock_minimo);
-        setAlertasStock(productosConAlerta.length);
-      }
-    } catch (error) {
-      console.error('Error al calcular las alertas de stock:', error.message);
-    }
+  const fetchAlertasStock = () => {
+    // Inventario simulado
+    const inventario = JSON.parse(localStorage.getItem('patitas_inventario') || '[]');
+    const productosConAlerta = inventario.filter(prod => prod.cantidad <= (prod.stock_minimo || 5));
+    setAlertasStock(productosConAlerta.length);
   };
 
-  const fetchCitasPorFecha = async (fecha) => {
+  const fetchCitasPorFecha = (fecha) => {
     setCargando(true);
     try {
-      const { data, error } = await supabase
-        .from('citas')
-        .select('*, mascotas(nombre), veterinarios(nombre_completo)')
-        .gte('fecha_hora', `${fecha}T00:00:00`)
-        .lte('fecha_hora', `${fecha}T23:59:59`)
-        .order('fecha_hora', { ascending: true });
+      const todasLasCitas = JSON.parse(localStorage.getItem('patitas_citas') || '[]');
+      
+      // Filtramos por fecha (Asumiendo que guardas la fecha_hora en formato YYYY-MM-DD)
+      const citasDelDia = todasLasCitas.filter(cita => cita.fecha_hora && cita.fecha_hora.startsWith(fecha));
 
-      if (error) throw error;
-
-      if (data) {
-        const citasFormateadas = data.map(cita => {
-          const fechaObj = new Date(cita.fecha_hora);
-          const horaFormateada = fechaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-          return {
-            id_cita: cita.id_cita,
-            time: horaFormateada,
-            isAvailable: false, 
-            isPaid: cita.estado === 'Completada', 
-            isCancelled: cita.estado === 'Cancelada', 
-            name: cita.mascotas?.nombre || 'Mascota',
-            type: cita.motivo,
-            details: `${cita.veterinarios?.nombre_completo || 'Asignado'} | Status: ${cita.estado}`,
-            monto: cita.monto || null 
-          };
-        });
-        setAgenda(citasFormateadas);
-        calcularEstadisticas(citasFormateadas);
-      }
+      const citasFormateadas = citasDelDia.map(cita => {
+        return {
+          id_cita: cita.id_cita,
+          time: cita.hora || '00:00',
+          isAvailable: false, 
+          isPaid: cita.estado === 'Completada', 
+          isCancelled: cita.estado === 'Cancelada', 
+          name: cita.nombre_mascota || 'Mascota',
+          type: cita.motivo,
+          details: `${cita.nombre_veterinario || 'Dr. Asignado'} | Status: ${cita.estado}`,
+          monto: cita.monto || null 
+        };
+      });
+      
+      // Ordenamos por hora
+      citasFormateadas.sort((a, b) => a.time.localeCompare(b.time));
+      
+      setAgenda(citasFormateadas);
+      calcularEstadisticas(citasFormateadas);
     } catch (error) {
       console.error('Error al cargar las citas:', error.message);
     } finally {
@@ -85,63 +74,49 @@ export const Recepcion = () => {
     setCitasAtendidas(atendidas);
   };
 
-  const handleCobrar = async (id_cita, montoActual) => {
-    try {
-      let montoACobrar = montoActual;
-      if (!montoACobrar) {
-        const inputMonto = window.prompt("Ingresa el monto a cobrar (Ej. 350):");
-        if (!inputMonto || isNaN(inputMonto) || Number(inputMonto) <= 0) {
-          alert("Debes ingresar un monto numérico mayor a 0.");
-          return;
-        }
-        montoACobrar = Number(inputMonto);
+  const handleCobrar = (id_cita, montoActual) => {
+    let montoACobrar = montoActual;
+    if (!montoACobrar) {
+      const inputMonto = window.prompt("Ingresa el monto a cobrar (Ej. 350):");
+      if (!inputMonto || isNaN(inputMonto) || Number(inputMonto) <= 0) {
+        alert("Debes ingresar un monto numérico mayor a 0.");
+        return;
       }
+      montoACobrar = Number(inputMonto);
+    }
+    
+    // Actualizar en localStorage
+    const todasLasCitas = JSON.parse(localStorage.getItem('patitas_citas') || '[]');
+    const index = todasLasCitas.findIndex(c => c.id_cita === id_cita);
+    
+    if (index !== -1) {
+      todasLasCitas[index].estado = 'Completada';
+      todasLasCitas[index].monto = montoACobrar;
+      localStorage.setItem('patitas_citas', JSON.stringify(todasLasCitas));
       
-      const { error: errorCita } = await supabase
-        .from('citas')
-        .update({ estado: 'Completada', monto: montoACobrar })
-        .eq('id_cita', id_cita); 
-
-      if (errorCita) throw errorCita;
-
-      const { error: errorPago } = await supabase
-        .from('pagos')
-        .insert([{
-          id_cita: id_cita,
-          monto: montoACobrar,
-          metodo_pago: 'Efectivo'
-        }]);
-
-      if (errorPago) throw errorPago;
-
-      alert(`Pago de $${montoACobrar} registrado exitosamente en la base de datos.`);
+      alert(`Pago de $${montoACobrar} registrado exitosamente.`);
       fetchCitasPorFecha(fechaSeleccionada); 
-    } catch (error) {
-      alert(`Error al registrar el cobro en base de datos: ${error.message}`);
     }
   };
 
-  const handleCancelar = async (id_cita) => {
+  const handleCancelar = (id_cita) => {
     const confirmar = window.confirm("¿Estás seguro de que deseas cancelar esta cita?");
     if (!confirmar) return;
 
-    try {
-      const { error } = await supabase
-        .from('citas')
-        .update({ estado: 'Cancelada' }) 
-        .eq('id_cita', id_cita);
-
-      if (error) throw error;
+    const todasLasCitas = JSON.parse(localStorage.getItem('patitas_citas') || '[]');
+    const index = todasLasCitas.findIndex(c => c.id_cita === id_cita);
+    
+    if (index !== -1) {
+      todasLasCitas[index].estado = 'Cancelada';
+      localStorage.setItem('patitas_citas', JSON.stringify(todasLasCitas));
       
       alert("Cita cancelada exitosamente.");
       fetchCitasPorFecha(fechaSeleccionada); 
-    } catch (error) {
-      alert(`Error al cancelar la cita: ${error.message}`);
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const handleLogout = () => {
+    localStorage.removeItem('currentUser');
     navigate('/login');
   };
 
@@ -156,24 +131,12 @@ export const Recepcion = () => {
         <ul className="rec-nav-menu">
           <li><a href="#" className="active">📅 Agenda y Caja</a></li>
           <li>
-            <a 
-              href="#" 
-              onClick={(e) => { 
-                e.preventDefault(); 
-                navigate('/agendar-cita', { state: { origen: 'recepcion' } }); 
-              }}
-            >
+            <a href="#" onClick={(e) => { e.preventDefault(); navigate('/agendar-cita', { state: { origen: 'recepcion' } }); }}>
               ➕ Nueva Cita
             </a>
           </li>
           <li>
-            <a 
-              href="#" 
-              onClick={(e) => {
-                e.preventDefault();
-                navigate('/inventario');
-              }}
-            >
+            <a href="#" onClick={(e) => { e.preventDefault(); navigate('/inventario'); }}>
               📦 Inventario
             </a>
           </li>
@@ -218,15 +181,7 @@ export const Recepcion = () => {
                   type="date" 
                   value={fechaSeleccionada}
                   onChange={(e) => setFechaSeleccionada(e.target.value)}
-                  style={{ 
-                    padding: '8px 12px', 
-                    borderRadius: '5px', 
-                    border: '1px solid #ccc', 
-                    color: 'var(--primary)', 
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    outline: 'none'
-                  }}
+                  style={{ padding: '8px 12px', borderRadius: '5px', border: '1px solid #ccc', color: 'var(--primary)', fontWeight: 'bold', cursor: 'pointer', outline: 'none' }}
                 />
               </div>
               <button className="btn-action btn-add" onClick={() => navigate('/agendar-cita', { state: { origen: 'recepcion' } })}>+ Agendar Turno</button>
@@ -236,7 +191,7 @@ export const Recepcion = () => {
               {cargando ? (
                  <p style={{ color: 'gray', padding: '20px', textAlign: 'center' }}>Cargando agenda...</p>
               ) : agenda.length === 0 ? (
-                <p style={{ color: 'gray', padding: '20px', textAlign: 'center' }}>No hay citas agendadas para esta fecha en la base de datos.</p>
+                <p style={{ color: 'gray', padding: '20px', textAlign: 'center' }}>No hay citas agendadas para esta fecha. (Añade citas estáticas desde el agendador).</p>
               ) : (
                 agenda.map((cita) => (
                   <div key={cita.id_cita} className="agenda-item">
@@ -249,33 +204,20 @@ export const Recepcion = () => {
 
                     <div style={{ display: 'flex', gap: '10px' }}>
                       {cita.isCancelled ? (
-                        <button className="btn-action" disabled style={{ backgroundColor: '#e0e0e0', color: '#666', border: '1px solid #ccc', cursor: 'not-allowed' }}>
-                          Cancelada
-                        </button>
+                        <button className="btn-action" disabled style={{ backgroundColor: '#e0e0e0', color: '#666', border: '1px solid #ccc', cursor: 'not-allowed' }}>Cancelada</button>
                       ) : cita.isPaid ? (
-                        <button className="btn-action btn-paid" disabled>
-                          Cobrado
-                        </button>
+                        <button className="btn-action btn-paid" disabled>Cobrado</button>
                       ) : (
                         <>
-                          <button 
-                            className="btn-action btn-pay"
-                            onClick={() => handleCobrar(cita.id_cita, cita.monto)}
-                          >
+                          <button className="btn-action btn-pay" onClick={() => handleCobrar(cita.id_cita, cita.monto)}>
                             Cobrar {cita.monto ? `$${cita.monto}` : ''}
                           </button>
-                          
-                          <button 
-                            className="btn-action btn-cancel"
-                            onClick={() => handleCancelar(cita.id_cita)}
-                            style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
-                          >
+                          <button className="btn-action btn-cancel" onClick={() => handleCancelar(cita.id_cita)} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
                             Cancelar
                           </button>
                         </>
                       )}
                     </div>
-
                   </div>
                 ))
               )}

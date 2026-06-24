@@ -1,81 +1,63 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabase';
 import './DashRec.css';
 
 export const Admin = () => {
   const navigate = useNavigate();
-  const [seccionActiva, setSeccionActiva] = useState('pacientes'); // Iniciamos en pacientes para probar
+  const [seccionActiva, setSeccionActiva] = useState('pacientes'); 
   
-  // Estados para Personal
   const [veterinarios, setVeterinarios] = useState([]);
   const [recepcionistas, setRecepcionistas] = useState([]);
   const [cargandoPersonal, setCargandoPersonal] = useState(false);
 
-  // Estados para Pacientes
   const [pacientes, setPacientes] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [cargandoPacientes, setCargandoPacientes] = useState(false);
 
-  // Estados para el Modal
   const [modalActivo, setModalActivo] = useState(null);
   const [guardando, setGuardando] = useState(false);
-  const [formData, setFormData] = useState({
-    nombre: '',
-    especialidad: '',
-    correo: '',
-    telefono: ''
-  });
+  const [formData, setFormData] = useState({ nombre: '', especialidad: '', correo: '', telefono: '' });
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const handleLogout = () => {
+    localStorage.removeItem('currentUser');
     navigate('/login');
   };
 
   useEffect(() => {
-    // Si cambiamos de seccion, cargamos lo necesario
+    const sesionActual = localStorage.getItem('currentUser');
+    if (!sesionActual) navigate('/login');
+
     if (seccionActiva === 'personal') fetchPersonal();
     if (seccionActiva === 'pacientes') fetchPacientes();
   }, [seccionActiva]);
 
-  // Funciones del personal
-  const fetchPersonal = async () => {
+  // Funciones del personal (Estáticas)
+  const fetchPersonal = () => {
     setCargandoPersonal(true);
-    try {
-      const [vetRes, recRes] = await Promise.all([
-        supabase.from('veterinarios').select('*').order('id_veterinario', { ascending: true }),
-        supabase.from('recepcionistas').select('*').order('id_recepcionista', { ascending: true })
-      ]);
-
-      if (vetRes.error) throw vetRes.error;
-      if (recRes.error) throw recRes.error;
-
-      setVeterinarios(vetRes.data || []);
-      setRecepcionistas(recRes.data || []);
-    } catch (error) {
-      console.error("Error al cargar personal:", error.message);
-    } finally {
+    setTimeout(() => {
+      const vets = JSON.parse(localStorage.getItem('patitas_veterinarios') || '[]');
+      const recs = JSON.parse(localStorage.getItem('patitas_recepcionistas') || '[]');
+      
+      setVeterinarios(vets);
+      setRecepcionistas(recs);
       setCargandoPersonal(false);
-    }
+    }, 300);
   };
 
-  const handleDarDeBaja = async (id, tipo) => {
-    const confirmacion = window.confirm("¿Estás seguro de que deseas dar de baja a este empleado? Esta acción no se puede deshacer.");
+  const handleDarDeBaja = (id, tipo) => {
+    const confirmacion = window.confirm("¿Estás seguro de que deseas dar de baja a este empleado?");
     if (!confirmacion) return;
 
-    try {
-      const tabla = tipo === 'veterinario' ? 'veterinarios' : 'recepcionistas';
-      const columnaId = tipo === 'veterinario' ? 'id_veterinario' : 'id_recepcionista';
-      
-      const { error } = await supabase.from(tabla).delete().eq(columnaId, id);
-      
-      if (error) throw error;
-      
-      alert('Empleado dado de baja correctamente.');
-      fetchPersonal(); 
-    } catch (error) {
-      alert(`Error al eliminar: ${error.message}`);
+    if (tipo === 'veterinario') {
+      const vets = veterinarios.filter(v => v.id_veterinario !== id);
+      localStorage.setItem('patitas_veterinarios', JSON.stringify(vets));
+      setVeterinarios(vets);
+    } else {
+      const recs = recepcionistas.filter(r => r.id_recepcionista !== id);
+      localStorage.setItem('patitas_recepcionistas', JSON.stringify(recs));
+      setRecepcionistas(recs);
     }
+    alert('Empleado dado de baja correctamente.');
   };
 
   const abrirModal = (tipo) => {
@@ -87,52 +69,68 @@ export const Admin = () => {
     setModalActivo(null);
   };
 
-  const handleGuardarPersonal = async (e) => {
+  const handleGuardarPersonal = (e) => {
     e.preventDefault();
     setGuardando(true);
 
-    try {
+    setTimeout(() => {
       if (modalActivo === 'veterinario') {
-        const { error } = await supabase.from('veterinarios').insert([
-          { nombre_completo: formData.nombre, especialidad: formData.especialidad || 'General' }
-        ]);
-        if (error) throw error;
+        const vets = JSON.parse(localStorage.getItem('patitas_veterinarios') || '[]');
+        vets.push({
+          id_veterinario: Date.now().toString(),
+          nombre_completo: formData.nombre,
+          especialidad: formData.especialidad || 'General'
+        });
+        localStorage.setItem('patitas_veterinarios', JSON.stringify(vets));
         alert('👨‍⚕️ Veterinario agregado con éxito.');
       } else if (modalActivo === 'recepcionista') {
-        const { error } = await supabase.from('recepcionistas').insert([
-          { nombre_completo: formData.nombre, correo: formData.correo, telefono: formData.telefono }
-        ]);
-        if (error) throw error;
+        const recs = JSON.parse(localStorage.getItem('patitas_recepcionistas') || '[]');
+        recs.push({
+          id_recepcionista: Date.now().toString(),
+          nombre_completo: formData.nombre,
+          correo: formData.correo,
+          telefono: formData.telefono
+        });
+        localStorage.setItem('patitas_recepcionistas', JSON.stringify(recs));
         alert('👩‍💻 Recepcionista agregada con éxito.');
       }
 
       cerrarModal();
       fetchPersonal();
-    } catch (error) {
-      alert(`Error al guardar: ${error.message}`);
-    } finally {
       setGuardando(false);
-    }
+    }, 400);
   };
 
-  // --- FUNCIONES DE PACIENTES ---
-  const fetchPacientes = async () => {
+  // --- FUNCIONES DE PACIENTES (Estáticas) ---
+  const fetchPacientes = () => {
     setCargandoPacientes(true);
-    const { data, error } = await supabase
-      .from('mascotas')
-      .select('*, clientes(nombre_completo, telefono, correo)'); // Join con clientes
-    
-    if (!error) setPacientes(data || []);
-    setCargandoPacientes(false);
+    setTimeout(() => {
+      const todasLasMascotas = JSON.parse(localStorage.getItem('patitas_mascotas') || '[]');
+      const todosLosUsuarios = JSON.parse(localStorage.getItem('patitas_usuarios') || '[]');
+
+      // Simulamos un JOIN entre mascotas y usuarios para obtener el dueño
+      const mascotasConDueno = todasLasMascotas.map(mascota => {
+        const dueno = todosLosUsuarios.find(u => u.email === mascota.id_cliente);
+        return {
+          ...mascota,
+          clientes: {
+            nombre_completo: dueno ? dueno.nombreCompleto : 'Desconocido',
+            telefono: dueno ? dueno.telefono : 'N/A',
+            correo: dueno ? dueno.email : 'N/A'
+          }
+        };
+      });
+
+      setPacientes(mascotasConDueno);
+      setCargandoPacientes(false);
+    }, 300);
   };
 
-  // Filtro de búsqueda en tiempo real
   const pacientesFiltrados = pacientes.filter(p => 
     p.nombre.toLowerCase().includes(searchQuery.toLowerCase()) || 
     p.clientes?.nombre_completo?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // --- RENDERIZADO CONDICIONAL DE SECCIONES ---
   const renderContenido = () => {
     switch (seccionActiva) {
       case 'dashboard':
@@ -160,7 +158,7 @@ export const Admin = () => {
             </div>
 
             {cargandoPersonal ? (
-              <p style={{ textAlign: 'center', padding: '20px', color: '#666' }}>Cargando base de datos...</p>
+              <p style={{ textAlign: 'center', padding: '20px', color: '#666' }}>Cargando datos locales...</p>
             ) : (
               <>
                 <h3 style={{ color: '#444', borderBottom: '2px solid #eee', paddingBottom: '10px', marginTop: '10px' }}>Médicos Veterinarios</h3>
@@ -168,7 +166,6 @@ export const Admin = () => {
                   <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#f4f6f9', textAlign: 'left' }}>
-                        <th style={{ padding: '12px', borderBottom: '2px solid #ddd', color: '#555' }}>ID</th>
                         <th style={{ padding: '12px', borderBottom: '2px solid #ddd', color: '#555' }}>Nombre Completo</th>
                         <th style={{ padding: '12px', borderBottom: '2px solid #ddd', color: '#555' }}>Especialidad</th>
                         <th style={{ padding: '12px', borderBottom: '2px solid #ddd', color: '#555' }}>Acciones</th>
@@ -177,15 +174,10 @@ export const Admin = () => {
                     <tbody>
                       {veterinarios.map(vet => (
                         <tr key={vet.id_veterinario} style={{ borderBottom: '1px solid #eee' }}>
-                          <td style={{ padding: '12px', color: '#666' }}>#{vet.id_veterinario}</td>
                           <td style={{ padding: '12px', fontWeight: 'bold', color: 'var(--primary)' }}>{vet.nombre_completo}</td>
                           <td style={{ padding: '12px', color: '#555' }}>{vet.especialidad || 'General'}</td>
                           <td style={{ padding: '12px' }}>
-                            <button 
-                                onClick={() => handleDarDeBaja(vet.id_veterinario, 'veterinario')}
-                                style={{ background: '#dc3545', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                                Dar de Baja
-                            </button>
+                            <button onClick={() => handleDarDeBaja(vet.id_veterinario, 'veterinario')} style={{ background: '#dc3545', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}>Dar de Baja</button>
                           </td>
                         </tr>
                       ))}
@@ -198,7 +190,6 @@ export const Admin = () => {
                   <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#f4f6f9', textAlign: 'left' }}>
-                        <th style={{ padding: '12px', borderBottom: '2px solid #ddd', color: '#555' }}>ID</th>
                         <th style={{ padding: '12px', borderBottom: '2px solid #ddd', color: '#555' }}>Nombre</th>
                         <th style={{ padding: '12px', borderBottom: '2px solid #ddd', color: '#555' }}>Email</th>
                         <th style={{ padding: '12px', borderBottom: '2px solid #ddd', color: '#555' }}>Teléfono</th>
@@ -208,16 +199,11 @@ export const Admin = () => {
                     <tbody>
                       {recepcionistas.map(rec => (
                         <tr key={rec.id_recepcionista} style={{ borderBottom: '1px solid #eee' }}>
-                          <td style={{ padding: '12px', color: '#666' }}>#{rec.id_recepcionista}</td>
                           <td style={{ padding: '12px', fontWeight: 'bold', color: 'var(--primary)' }}>{rec.nombre_completo || rec.nombre}</td>
                           <td style={{ padding: '12px', color: '#555' }}>{rec.email || rec.correo || 'N/A'}</td>
                           <td style={{ padding: '12px', color: '#555' }}>{rec.telefono || 'N/A'}</td>
                           <td style={{ padding: '12px' }}>
-                            <button 
-                                onClick={() => handleDarDeBaja(rec.id_recepcionista, 'recepcionista')}
-                                style={{ background: '#dc3545', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                                Dar de Baja
-                            </button>
+                            <button onClick={() => handleDarDeBaja(rec.id_recepcionista, 'recepcionista')} style={{ background: '#dc3545', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}>Dar de Baja</button>
                           </td>
                         </tr>
                       ))}
@@ -234,15 +220,9 @@ export const Admin = () => {
           <div className="panel">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ color: 'var(--primary)', margin: 0 }}>Directorio de Pacientes</h2>
-              <input 
-                type="text" 
-                placeholder="🔍 Buscar por nombre de mascota o dueño..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ padding: '10px', width: '300px', borderRadius: '5px', border: '1px solid #ccc' }}
-              />
+              <input type="text" placeholder="🔍 Buscar..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ padding: '10px', width: '300px', borderRadius: '5px', border: '1px solid #ccc' }} />
             </div>
-            {cargandoPacientes ? <p>Cargando pacientes...</p> : (
+            {cargandoPacientes ? <p>Cargando pacientes locales...</p> : (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f4f6f9' }}>
@@ -285,14 +265,14 @@ export const Admin = () => {
         <div className="rec-header-main">
           <div>
             <h1>Centro de Control</h1>
-            <p style={{ color: '#666' }}>Visión global y configuraciones del sistema</p>
+            <p style={{ color: '#666' }}>Visión global y configuraciones del sistema (Modo Local)</p>
           </div>
           <button onClick={handleLogout} className="btn-logout">Cerrar Sesión</button>
         </div>
         {renderContenido()}
       </main>
 
-      {/* --- MODAL PARA REGISTRO DE PERSONAL --- */}
+      {/* MODAL */}
       {modalActivo && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '10px', width: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>

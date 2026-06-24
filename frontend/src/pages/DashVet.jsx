@@ -1,7 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './DashVet.css'; 
-
 
 const initialAppointments = [
   { id: 1, time: '11:00 AM', type: 'Consulta General', typeClass: 'badge-consulta', name: 'Toby', owner: 'Carlos Gómez', reason: 'Revisión de orejas (posible otitis)', isCompleted: false },
@@ -16,13 +15,25 @@ export const DashVet = () => {
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState(initialAppointments);
   const [completedCount, setCompletedCount] = useState(0);
+
+  // 1. VALIDACIÓN DE SESIÓN ESTÁTICA
+  useEffect(() => {
+    const sesionActual = localStorage.getItem('currentUser');
+    if (!sesionActual) {
+      navigate('/login');
+    }
+  }, [navigate]);
+
   const handleFinishTask = (id) => {
     setAppointments(appointments.map(app => 
       app.id === id ? { ...app, isCompleted: true } : app
     ));
     setCompletedCount(prev => prev + 1);
   };
+
   const handleLogout = () => {
+    // 2. DESTRUCCIÓN DE LA SESIÓN AL SALIR
+    localStorage.removeItem('currentUser');
     navigate('/login');
   };
 

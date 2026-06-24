@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabase';
 import './Mascotas.css'; 
 
 function Mascotas() {
@@ -23,24 +22,18 @@ function Mascotas() {
     obtenerClienteYMascotas();
   }, []);
 
-  const obtenerClienteYMascotas = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return navigate('/login');
+  const obtenerClienteYMascotas = () => {
+    // Obtener sesión local simulada
+    const sesionActual = localStorage.getItem('currentUser');
+    if (!sesionActual) return navigate('/login');
 
-    const { data: cliente } = await supabase
-      .from('clientes')
-      .select('id_cliente')
-      .eq('correo', session.user.email)
-      .single();
+    const cliente = JSON.parse(sesionActual);
+    setIdCliente(cliente.email); // Usamos el email como identificador único estático
 
-    if (cliente) {
-      setIdCliente(cliente.id_cliente);
-      const { data: mascotasData } = await supabase
-        .from('mascotas')
-        .select('*')
-        .eq('id_cliente', cliente.id_cliente);
-      setMascotas(mascotasData || []);
-    }
+    // Cargar mascotas del localStorage
+    const todasLasMascotas = JSON.parse(localStorage.getItem('patitas_mascotas') || '[]');
+    const mascotasDelCliente = todasLasMascotas.filter(m => m.id_cliente === cliente.email);
+    setMascotas(mascotasDelCliente);
   };
 
   const editarMascota = (mascota) => {
@@ -63,68 +56,64 @@ function Mascotas() {
     setEdad('');
     setCaracteristicas(''); 
     setFoto(null);
-    document.getElementById('foto-input').value = '';
+    if(document.getElementById('foto-input')) document.getElementById('foto-input').value = '';
     setIdMascotaEditando(null);
     setMostrarFormulario(false); 
+  };
+
+  const procesarImagenBase64 = (archivo) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(archivo);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
   };
 
   const guardarMascota = async () => {
     if (!nombre || !especie) return alert('Nombre y especie son obligatorios');
     setCargando(true);
 
-    let fotoUrl = null;
-
     try {
+      let fotoUrl = null;
+
+      // Si suben una foto, la convertimos a formato Base64 para guardarla estáticamente
       if (foto) {
-        const fileExt = foto.name.split('.').pop();
-        const fileName = `${Date.now()}.${fileExt}`;
-        const filePath = `${idCliente}/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('fotos_mascotas')
-          .upload(filePath, foto);
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('fotos_mascotas')
-          .getPublicUrl(filePath);
-
-        fotoUrl = publicUrl;
+        fotoUrl = await procesarImagenBase64(foto);
       }
 
-      const datosMascota = {
-        nombre, especie, sexo, edad: edad ? parseInt(edad) : null, caracteristicas
-      };
-
-      if (fotoUrl) {
-        datosMascota.foto_url = fotoUrl;
-      }
+      const todasLasMascotas = JSON.parse(localStorage.getItem('patitas_mascotas') || '[]');
 
       if (idMascotaEditando) {
-        const { error: dbError } = await supabase
-          .from('mascotas')
-          .update(datosMascota)
-          .eq('id_mascota', idMascotaEditando);
-          
-        if (dbError) throw dbError;
+        const index = todasLasMascotas.findIndex(m => m.id_mascota === idMascotaEditando);
+        if(index !== -1) {
+          todasLasMascotas[index] = {
+            ...todasLasMascotas[index],
+            nombre, especie, sexo, edad: edad ? parseInt(edad) : null, caracteristicas,
+            ...(fotoUrl && { foto_url: fotoUrl }) // Solo actualiza foto si se subió una nueva
+          };
+        }
         alert('¡Datos de la mascota actualizados!');
       } else {
-        datosMascota.id_cliente = idCliente; 
-        const { error: dbError } = await supabase
-          .from('mascotas')
-          .insert(datosMascota);
-          
-        if (dbError) throw dbError;
+        const nuevaMascota = {
+          id_mascota: Date.now().toString(), // Generar un ID único estático
+          id_cliente: idCliente,
+          nombre, especie, sexo, edad: edad ? parseInt(edad) : null, caracteristicas,
+          foto_url: fotoUrl
+        };
+        todasLasMascotas.push(nuevaMascota);
         alert('¡Mascota guardada con éxito!');
       }
+      
+      // Guardar en la base de datos simulada del navegador
+      localStorage.setItem('patitas_mascotas', JSON.stringify(todasLasMascotas));
       
       cancelarEdicion(); 
       obtenerClienteYMascotas();
 
     } catch (error) {
       console.error("Error al guardar la mascota:", error);
-      alert('Hubo un error al guardar. Revisa la consola.');
+      alert('Hubo un error al guardar localmente.');
     } finally {
       setCargando(false);
     }
@@ -243,7 +232,7 @@ function Mascotas() {
             />
 
             <input
-              placeholder="Características (Ej. Manchas negras, muy juguetón...)"
+              placeholder="Características (Ej. Manchas negras...)"
               value={caracteristicas}
               onChange={(e) => setCaracteristicas(e.target.value)}
               maxLength={40} 

@@ -1,6 +1,5 @@
-import { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../supabase';
 import { CartContext } from '../tienda/CartContext';
 import './PortalCliente.css';
 
@@ -19,65 +18,38 @@ function PortalCliente() {
     obtenerSesion();
   }, []);
 
-  const obtenerSesion = async () => {
+  const obtenerSesion = () => {
     try {
-      const { data: { session }, error: authError } = await supabase.auth.getSession();
-      if (authError || !session) return navigate('/login');
-
-      setUsuarioId(session.user.id); 
-
-      const { data: cliente, error } = await supabase
-        .from('clientes')
-        .select('id_cliente, nombre_completo') 
-        .eq('correo', session.user.email)
-        .single();
-
-      if (error) throw error;
-      if (cliente) {
-        setUsuarioNombre(cliente.nombre_completo);
-        fetchEstadisticasCliente(cliente.id_cliente);
+      const sesionActual = localStorage.getItem('currentUser');
+      if (!sesionActual) {
+        return navigate('/login');
       }
+
+      const cliente = JSON.parse(sesionActual);
+      setUsuarioId(cliente.email); 
+      setUsuarioNombre(cliente.nombreCompleto || 'Cliente');
+      
+      fetchEstadisticasCliente(cliente.email);
     } catch (error) {
-      console.error("Error al obtener sesión:", error.message);
+      console.error("Error al obtener sesión estática:", error.message);
     } finally {
       setCargando(false);
     }
   };
 
-  const fetchEstadisticasCliente = async (idClienteNum) => {
+  const fetchEstadisticasCliente = (emailCliente) => {
     try {
-      // --- 1. Consulta de Mascotas ---
-      const { data: mascotasData, error: errMascotas } = await supabase
-        .from('mascotas')
-        .select('id_mascota') 
-        .eq('id_cliente', idClienteNum); 
+      const todasLasMascotas = JSON.parse(localStorage.getItem('patitas_mascotas') || '[]');
+      const mascotasDelCliente = todasLasMascotas.filter(m => m.id_cliente === emailCliente);
+      setTotalMascotas(mascotasDelCliente.length);
 
-      if (errMascotas) {
-        console.error("❌ Falla en tabla 'mascotas':", errMascotas);
-        return; 
-      }
-
-      setTotalMascotas(mascotasData ? mascotasData.length : 0);
-
-      // --- 2. Consulta de Citas ---
-      if (mascotasData && mascotasData.length > 0) {
-        const idsMascotas = mascotasData.map(m => m.id_mascota);
-
-        const { count: citasCount, error: errCitas } = await supabase
-          .from('citas')
-          .select('*', { count: 'exact', head: true })
-          .in('id_mascota', idsMascotas) 
-          .neq('estado', 'Cancelada')
-          .neq('estado', 'Completada');
-          
-        if (errCitas) {
-          console.error("❌ Falla en tabla 'citas':", errCitas);
-        } else if (citasCount !== null) {
-          setCitasPendientes(citasCount);
-        }
-      } else {
-        setCitasPendientes(0);
-      }
+      const todasLasCitas = JSON.parse(localStorage.getItem('patitas_citas') || '[]');
+      const citasActivas = todasLasCitas.filter(cita => 
+        cita.id_cliente === emailCliente && 
+        cita.estado !== 'Cancelada' && 
+        cita.estado !== 'Completada'
+      );
+      setCitasPendientes(citasActivas.length);
     } catch (error) {
       console.error("Error general en estadísticas:", error.message);
     }
@@ -88,39 +60,21 @@ function PortalCliente() {
     return carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
   };
 
-  const handleConfirmarPago = async () => {
-    if (carrito.length === 0) return;
-    
+  // --- Función añadida para evitar error en el botón de pago ---
+  const handleConfirmarPago = () => {
     setProcesandoPago(true);
     setErrorPago(null);
-
-    try {
-      const itemsPayload = carrito.map(item => ({
-        id: Number(item.id), 
-        cantidad: item.cantidad,
-        precio: item.precio
-      }));
-
-      const { error: rpcError } = await supabase.rpc('procesar_compra', {
-        p_usuario_id: usuarioId,
-        p_total: calcularTotal(),
-        p_items: itemsPayload
-      });
-
-      if (rpcError) throw rpcError;
-      vaciarCarrito();
-      alert('¡Compra realizada con éxito! 🐾 Tu pedido ha sido registrado.');
-      
-    } catch (err) {
-      console.error('Error al procesar la compra:', err);
-      setErrorPago(err.message || 'Ocurrió un error al procesar el pago.');
-    } finally {
+    
+    // Simulamos un retraso de pago para la versión estática
+    setTimeout(() => {
       setProcesandoPago(false);
-    }
+      alert("¡Pago simulado exitosamente!");
+      if(vaciarCarrito) vaciarCarrito();
+    }, 1500);
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const handleLogout = () => {
+    localStorage.removeItem('currentUser'); 
     navigate('/');
   };
 
@@ -168,7 +122,6 @@ function PortalCliente() {
           </div>
         </div>
 
-        
         {carrito && carrito.length > 0 && (
           <section className="cart-summary">
             <h2>Resumen de tu Compra 🛒</h2>
@@ -199,42 +152,14 @@ function PortalCliente() {
 
         <section className="pet-care-tips">
           <h2>Cuidados que debes tener con las mascotas y los niños </h2>
-          
           <div className="tips-grid">
-            <div className="tip-card">
-              <span className="tip-icon">👀</span>
-              <p><strong>Supervísalos siempre.</strong> De forma permanente, no los dejes solos.</p>
-            </div>
-            
-            <div className="tip-card">
-              <span className="tip-icon">🤝</span>
-              <p><strong>Enséñales el respeto mutuo.</strong></p>
-            </div>
-            
-            <div className="tip-card">
-              <span className="tip-icon">🧼</span>
-              <p><strong>Higiene ante todo.</strong> Evita que los niños besen a las mascotas o ingieran alimentos después de tocarlas sin lavarse las manos.</p>
-            </div>
-            
-            <div className="tip-card">
-              <span className="tip-icon">✂️</span>
-              <p><strong>Cuidados necesarios.</strong> Bríndale a tu mascota los cuidados que requiere para mantenerse sana; así también proteges a los niños.</p>
-            </div>
-            
-            <div className="tip-card">
-              <span className="tip-icon">🐿️</span>
-              <p><strong>No tengas animales silvestres.</strong> Está prohibido y es un gran riesgo tanto para los niños como para las mascotas.</p>
-            </div>
-            
-            <div className="tip-card">
-              <span className="tip-icon">🚧</span>
-              <p><strong>Pon límites.</strong> Cada uno debe tener su espacio establecido para dormir, comer, etc.</p>
-            </div>
-            
-            <div className="tip-card">
-              <span className="tip-icon">❤️</span>
-              <p><strong>No son juguetes.</strong> Muéstrales a los niños que las mascotas sienten y merecen respeto.</p>
-            </div>
+            <div className="tip-card"><span className="tip-icon">👀</span><p><strong>Supervísalos siempre.</strong> De forma permanente, no los dejes solos.</p></div>
+            <div className="tip-card"><span className="tip-icon">🤝</span><p><strong>Enséñales el respeto mutuo.</strong></p></div>
+            <div className="tip-card"><span className="tip-icon">🧼</span><p><strong>Higiene ante todo.</strong> Evita que los niños besen a las mascotas o ingieran alimentos después de tocarlas sin lavarse las manos.</p></div>
+            <div className="tip-card"><span className="tip-icon">✂️</span><p><strong>Cuidados necesarios.</strong> Bríndale a tu mascota los cuidados que requiere para mantenerse sana; así también proteges a los niños.</p></div>
+            <div className="tip-card"><span className="tip-icon">🐿️</span><p><strong>No tengas animales silvestres.</strong> Está prohibido y es un gran riesgo tanto para los niños como para las mascotas.</p></div>
+            <div className="tip-card"><span className="tip-icon">🚧</span><p><strong>Pon límites.</strong> Cada uno debe tener su espacio establecido para dormir, comer, etc.</p></div>
+            <div className="tip-card"><span className="tip-icon">❤️</span><p><strong>No son juguetes.</strong> Muéstrales a los niños que las mascotas sienten y merecen respeto.</p></div>
           </div>
         </section>
 

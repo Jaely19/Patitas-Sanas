@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../supabase'; 
 import { useNavigate } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
 import './MisCompras.css';
@@ -12,57 +11,41 @@ export const MisCompras = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const cargarHistorial = async () => {
+    const cargarHistorialEstatico = () => {
       setLoading(true);
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError || !user) {
-        setError('No se pudo verificar la sesión.');
-        setLoading(false);
-        return;
-      }
-      const { data: clienteData } = await supabase
-        .from('clientes')
-        .select('nombre_completo')
-        .eq('correo', user.email)
-        .single();
+      try {
+        // 1. Obtener la sesión actual
+        const sesionActual = localStorage.getItem('currentUser');
+        if (!sesionActual) {
+          setError('No se pudo verificar la sesión. Por favor inicia sesión.');
+          setLoading(false);
+          return;
+        }
 
-      if (clienteData) {
-        setNombreCliente(clienteData.nombre_completo);
-      } else {
-        setNombreCliente('Cliente de Patitas Sanas'); 
-      }
+        const cliente = JSON.parse(sesionActual);
+        setNombreCliente(cliente.nombreCompleto || 'Cliente de Patitas Sanas');
 
-      const { data, error: dbError } = await supabase
-        .from('pedidos')
-        .select(`
-          id,
-          fecha,
-          total,
-          detalles_pedido (
-            id,
-            cantidad,
-            precio_unitario,
-            productos (
-              nombre
-            )
-          )
-        `)
-        .eq('usuario_id', user.id)
-        .order('fecha', { ascending: false });
+        // 2. Cargar los pedidos desde localStorage
+        const todosLosPedidos = JSON.parse(localStorage.getItem('patitas_pedidos') || '[]');
+        
+        // Filtrar solo los pedidos de este usuario y ordenarlos por el más reciente
+        const misPedidos = todosLosPedidos
+          .filter(pedido => pedido.usuario_email === cliente.email)
+          .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
-      if (dbError) {
+        setCompras(misPedidos);
+      } catch (err) {
+        console.error(err);
         setError('Error al cargar el historial.');
-      } else {
-        setCompras(data || []);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    cargarHistorial();
+    cargarHistorialEstatico();
   }, []);
 
-  /*Generador de Ticktes*/
+  /* Generador de Tickets (Intacto, solo ajustado para la estructura local) */
   const descargarTicket = (pedido) => {
     const doc = new jsPDF();
 
@@ -91,7 +74,7 @@ export const MisCompras = () => {
     doc.text("TICKET DE COMPRA", 160, 29, { align: "center" });
     
     doc.setTextColor(0, 0, 0);
-    doc.text(`Nro. ${pedido.id.slice(0, 8).toUpperCase()}`, 160, 37, { align: "center" });
+    doc.text(`Nro. ${String(pedido.id).slice(0, 8).toUpperCase()}`, 160, 37, { align: "center" });
 
     const fechaFormat = new Date(pedido.fecha).toLocaleDateString('es-MX', {
       year: 'numeric', month: 'long', day: 'numeric'
@@ -111,8 +94,7 @@ export const MisCompras = () => {
     doc.text("FORMA DE PAGO:", 115, 59);
     doc.setFont("helvetica", "normal");
     
-    // Establecemos el pago en efectivo
-    doc.text("Efectivo (En Sucursal)", 148, 59);
+    doc.text("Efectivo / Tarjeta (Local)", 148, 59);
     let startY = 75;
     doc.setLineWidth(0.5);
     doc.rect(20, startY, 170, 8); 
@@ -127,7 +109,7 @@ export const MisCompras = () => {
     
     if (pedido.detalles_pedido && pedido.detalles_pedido.length > 0) {
       pedido.detalles_pedido.forEach((detalle) => {
-        const nombreProducto = detalle.productos?.nombre || 'Producto no disponible';
+        const nombreProducto = detalle.productos?.nombre || 'Producto';
         const importe = detalle.precio_unitario * detalle.cantidad;
         
         doc.text(`${detalle.cantidad}`, 35, currentY, { align: "center" });
@@ -182,7 +164,7 @@ export const MisCompras = () => {
     doc.text("Para la entrega, presenta este comprobante impreso o digital en mostrador.", 20, footerY + 14);
     doc.text("¡Gracias por confiar en Patitas Sanas para el cuidado de tu mascota!", 20, footerY + 18);
 
-    doc.save(`Ticket_PatitasSanas_${pedido.id.slice(0, 8)}.pdf`);
+    doc.save(`Ticket_PatitasSanas_${String(pedido.id).slice(0, 8)}.pdf`);
   };
 
   if (loading) return <div className="mc-loading">Cargando tus compras... 🐾</div>;
@@ -210,7 +192,7 @@ export const MisCompras = () => {
               <header className="mc-card-header">
                 <div className="mc-order-info">
                   <span className="mc-order-label">Pedido</span>
-                  <span className="mc-order-id">#{pedido.id.slice(0, 8).toUpperCase()}</span>
+                  <span className="mc-order-id">#{String(pedido.id).slice(0, 8).toUpperCase()}</span>
                 </div>
                 <div className="mc-order-date">
                   {new Date(pedido.fecha).toLocaleDateString('es-MX', {
@@ -224,8 +206,8 @@ export const MisCompras = () => {
               <div className="mc-card-body">
                 <h4 className="mc-items-title">Artículos:</h4>
                 <ul className="mc-items-list">
-                  {pedido.detalles_pedido && pedido.detalles_pedido.map((detalle) => (
-                    <li key={detalle.id} className="mc-item">
+                  {pedido.detalles_pedido && pedido.detalles_pedido.map((detalle, index) => (
+                    <li key={index} className="mc-item">
                       <span className="mc-item-name">
                         {detalle.productos?.nombre || 'Producto'} 
                         <span className="mc-item-qty"> x{detalle.cantidad}</span>
