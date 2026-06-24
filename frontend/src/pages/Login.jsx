@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import './Login.css'; 
 
@@ -13,6 +13,37 @@ function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // PRE-CARGAR DATOS ESTÁTICOS PARA QUE EL PROYECTO NO SE VEA VACÍO
+  useEffect(() => {
+    const usuariosDB = JSON.parse(localStorage.getItem('patitas_usuarios') || '[]');
+    
+    // Si no hay usuarios, inyectamos los datos de prueba iniciales
+    if (usuariosDB.length === 0) {
+      const demoUser = { 
+        email: 'usuariodemo@gmail.com', 
+        password: 'usuario1234', 
+        nombreCompleto: 'Usuario de Prueba', 
+        telefono: '5512345678', 
+        rol: 'Cliente' 
+      };
+      localStorage.setItem('patitas_usuarios', JSON.stringify([demoUser]));
+      
+      // Mascotas de prueba
+      const mascotasDemo = [
+        { id: 1, dueñoEmail: 'usuariodemo@gmail.com', nombre: 'Firulais', especie: 'Perro', raza: 'Mestizo', edad: 3 },
+        { id: 2, dueñoEmail: 'usuariodemo@gmail.com', nombre: 'Michi', especie: 'Gato', raza: 'Siamés', edad: 2 }
+      ];
+      localStorage.setItem('patitas_mascotas', JSON.stringify(mascotasDemo));
+
+      // Citas de prueba para que Recepción y Veterinario tengan qué ver
+      const citasDemo = [
+        { id: 1, clienteEmail: 'usuariodemo@gmail.com', mascota: 'Firulais', fecha: '2026-06-30', hora: '10:00', motivo: 'Vacunación', estado: 'Pendiente' },
+        { id: 2, clienteEmail: 'usuariodemo@gmail.com', mascota: 'Michi', fecha: '2026-07-02', hora: '12:30', motivo: 'Revisión General', estado: 'Pendiente' }
+      ];
+      localStorage.setItem('patitas_citas', JSON.stringify(citasDemo));
+    }
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const emailLimpio = email.trim();
@@ -21,30 +52,35 @@ function Login() {
     
     // 1. Administrador
     if (emailLimpio === 'admin@patitassanas.com' && password === 'Admin1234') {
-      localStorage.setItem('currentUser', JSON.stringify({ email: emailLimpio, rol: 'Administrador' }));
+      localStorage.setItem('currentUser', JSON.stringify({ email: emailLimpio, rol: 'Administrador', nombreCompleto: 'Administrador del Sistema' }));
       navigate('/admin');
       return; 
     }
 
     // 2. Recepcionista
     if (emailLimpio === 'marirep@gmail.com' && password === 'Spam18091809.') {
-      localStorage.setItem('currentUser', JSON.stringify({ email: emailLimpio, rol: 'Recepcionista' }));
-      // Redirige a /recepcion que está definida en tu App.jsx
+      localStorage.setItem('currentUser', JSON.stringify({ email: emailLimpio, rol: 'Recepcionista', nombreCompleto: 'Mari (Recepción)' }));
       navigate('/recepcion');
       return; 
     }
 
     // 3. Veterinario
     if (emailLimpio === 'veterinario@demo.com' && password === 'vet123') {
-      localStorage.setItem('currentUser', JSON.stringify({ email: emailLimpio, rol: 'Veterinario' }));
-      // Redirige a /demo-veterinario según tu App.jsx
+      localStorage.setItem('currentUser', JSON.stringify({ email: emailLimpio, rol: 'Veterinario', nombreCompleto: 'Dr. Veterinario' }));
       navigate('/demo-veterinario');
+      return; 
+    }
+
+    // 4. Usuario de Prueba (Cliente)
+    if (emailLimpio === 'usuariodemo@gmail.com' && password === 'usuario1234') {
+      localStorage.setItem('currentUser', JSON.stringify({ email: emailLimpio, rol: 'Cliente', nombreCompleto: 'Usuario de Prueba' }));
+      navigate(location.state?.returnTo || '/portal-cliente');
       return; 
     }
 
     setCargando(true);
     
-    // Simulamos un pequeño tiempo de carga para los clientes
+    // Simulamos un pequeño tiempo de carga para los clientes dinámicos
     setTimeout(() => {
       const rutaDestino = location.state?.returnTo || '/portal-cliente';
       const usuariosDB = JSON.parse(localStorage.getItem('patitas_usuarios') || '[]');
@@ -76,11 +112,10 @@ function Login() {
         navigate(location.state?.returnTo ? rutaDestino : '/agendar-cita');
 
       } else {
-        // --- INICIO DE SESIÓN SIMULADO PARA CLIENTES ---
+        // --- INICIO DE SESIÓN SIMULADO PARA CLIENTES NUEVOS ---
         const usuarioEncontrado = usuariosDB.find(u => u.email === emailLimpio && u.password === password);
         
         if (usuarioEncontrado) {
-          // Guardar sesión activa
           localStorage.setItem('currentUser', JSON.stringify(usuarioEncontrado));
           navigate(rutaDestino);
         } else {
@@ -115,7 +150,7 @@ function Login() {
                   placeholder="Tu nombre completo" 
                   value={nombreCompleto} 
                   onChange={(e) => setNombreCompleto(e.target.value)} 
-                  required 
+                  required={!isLogin} 
                 />
               </div>
               <div className="input-group">
