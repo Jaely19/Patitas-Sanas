@@ -1,5 +1,16 @@
 {
+  "name": "patitas-sanas",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.1",
     "jspdf": "^4.2.1"
+  },
+  "devDependencies": {
+    "wrangler": "^3.90.0"
   }
 }
