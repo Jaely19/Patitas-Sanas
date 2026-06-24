@@ -1,0 +1,6 @@
+name = "mcp-server-cloudflare" # El nombre que verás en tu panel de Cloudflare
+main = "src/index.js"          # El punto de entrada de tu servidor
+compatibility_date = "2026-06-24" # Fecha actual para congelar las funciones de la API
+
+[vars]
+# Si tu servidor MCP necesita variables de entorno públicas, irán aquí.
