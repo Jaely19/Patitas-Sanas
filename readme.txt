@@ -1,5 +1,3 @@
-README Para el Profe
-
 ## Proyecto 7: Patitas Sanas - Veterinaria 
 Sistema web para una clínica veterinaria enfocado en realizar citas en línea, control de invetarios, 
 manejo de personal e informacion sobre los servicios proporcionados.
