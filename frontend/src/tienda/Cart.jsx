@@ -50,8 +50,10 @@ const Cart = () => {
   };
 
   const procesarPago = () => {
-    // Entorno estático: no hay sesión real que verificar,
-    // así que siempre se permite avanzar al portal del cliente.
+    // Generamos el ticket antes de redirigir (opcional, si quieres que se descargue al pagar)
+    // generarTicket(); 
+    
+    // Entorno estático: sin validación de sesión
     navigate('/portal-cliente');
   };
 

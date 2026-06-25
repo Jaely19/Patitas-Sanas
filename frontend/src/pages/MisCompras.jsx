@@ -1,26 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
-import { comprasEstaticas } from '../models/compras'; // 1. Importamos el modelo
+import { comprasEstaticas } from '../models/compras';
 import './MisCompras.css';
 
 export const MisCompras = () => {
   const [compras, setCompras] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [nombreCliente, setNombreCliente] = useState('Cliente Demo'); // Nombre estático
+  const [nombreCliente] = useState('Cliente Demo'); // Nombre estático, sin setNombreCliente porque no cambia
   const navigate = useNavigate();
 
   useEffect(() => {
-    // 2. Simulamos la carga del historial
+    // Simulamos la carga del historial con un pequeño retardo
     setTimeout(() => {
       setCompras(comprasEstaticas);
       setLoading(false);
     }, 400);
   }, []);
 
-  // ... (El resto de tu función `descargarTicket` se queda EXACTAMENTE igual)
-
-  /*Generador de Ticktes*/
+  /* Generador de Tickets */
   const descargarTicket = (pedido) => {
     const doc = new jsPDF();
 
@@ -144,7 +142,8 @@ export const MisCompras = () => {
   };
 
   if (loading) return <div className="mc-loading">Cargando tus compras... 🐾</div>;
-  if (error) return <div className="mc-error">{error}</div>;
+  
+  // ¡Se eliminó el if (error) que estaba rompiendo la aplicación!
 
   return (
     <div className="mc-container">

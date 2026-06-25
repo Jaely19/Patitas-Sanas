@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { citasEstaticas } from '../models/citas'; // 1. Importar el modelo
+import { citasEstaticas } from '../models/citas'; 
 import './Citas.css';
 
 function Citas() {

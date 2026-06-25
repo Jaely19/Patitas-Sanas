@@ -1,19 +1,36 @@
+// src/models/compras.js
+
 export const comprasEstaticas = [
-  { 
-    id: "pedido-12345678", 
-    fecha: "2026-06-15", 
-    total: 450.00, 
+  {
+    id: "a1b2c3d4-89ab-cdef-0123-456789abcdef", // Un string largo para que .slice(0, 8) funcione
+    fecha: "2026-06-20T10:30:00Z",
+    total: 850.00,
     detalles_pedido: [
-      { id: 1, cantidad: 2, precio_unitario: 150.00, productos: { nombre: "Croquetas Dog Chow 2kg" } },
-      { id: 2, cantidad: 1, precio_unitario: 150.00, productos: { nombre: "Shampoo antipulgas" } }
+      {
+        id: "det-1",
+        cantidad: 2,
+        precio_unitario: 350.00,
+        productos: { nombre: "Bulto de Croquetas Premium (Perro Adulto) 4kg" }
+      },
+      {
+        id: "det-2",
+        cantidad: 1,
+        precio_unitario: 150.00,
+        productos: { nombre: "Shampoo Antipulgas 500ml" }
+      }
     ]
   },
-  { 
-    id: "pedido-87654321", 
-    fecha: "2026-05-20", 
-    total: 250.00, 
+  {
+    id: "f9e8d7c6-1234-5678-abcd-ef0123456789",
+    fecha: "2026-06-22T16:45:00Z",
+    total: 450.00,
     detalles_pedido: [
-      { id: 3, cantidad: 1, precio_unitario: 250.00, productos: { nombre: "Correa retráctil" } }
+      {
+        id: "det-3",
+        cantidad: 1,
+        precio_unitario: 450.00,
+        productos: { nombre: "Consulta General + Vacuna Quíntuple" }
+      }
     ]
   }
 ];

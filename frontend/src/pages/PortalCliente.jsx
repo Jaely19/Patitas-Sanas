@@ -20,12 +20,10 @@ function PortalCliente() {
   }, []);
 
   const cargarDatosSimulados = () => {
-    // Simulamos al cliente "logueado" directamente en el estado,
-    // sin pedir nada a una base de datos.
-    setUsuarioNombre('Usuario Demo');
+    // Simulamos al cliente "logueado" directamente en el estado
+    setUsuarioNombre('Cliente Demo');
 
-    // --- Estadísticas a partir de los modelos estáticos ---
-    // Mascotas: simplemente contamos cuántas hay en el arreglo
+    // Estadísticas a partir de los modelos estáticos
     setTotalMascotas(mascotasEstaticas.length);
 
     // Citas pendientes: contamos las que no estén Canceladas ni Completadas
@@ -45,20 +43,16 @@ function PortalCliente() {
   const handleConfirmarPago = () => {
     if (carrito.length === 0) return;
 
+    // Flujo completamente síncrono y local
     setProcesandoPago(true);
     setErrorPago(null);
-
-    // Simulamos el procesamiento del pago "en memoria",
-    // sin llamar a ningún backend ni RPC.
-    setTimeout(() => {
-      vaciarCarrito();
-      setProcesandoPago(false);
-      alert('¡Compra realizada con éxito! 🐾 Tu pedido ha sido registrado.');
-    }, 600); // pequeño delay simulado, opcional
+    
+    vaciarCarrito();
+    setProcesandoPago(false);
+    alert('¡Compra realizada con éxito! 🐾 Tu pedido ha sido registrado.');
   };
 
   const handleLogout = () => {
-    // Ya no hay sesión real que cerrar, solo regresamos al inicio.
     navigate('/');
   };
 
@@ -105,7 +99,6 @@ function PortalCliente() {
             <div className="value">{carrito ? carrito.length : 0}</div>
           </div>
         </div>
-
 
         {carrito && carrito.length > 0 && (
           <section className="cart-summary">
