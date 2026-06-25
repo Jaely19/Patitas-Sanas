@@ -1,14 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { jsPDF } from "jspdf";
 import { citasEstaticas } from "../models/citas";
 import { historialEstatico } from "../models/historial";
 import "./Medico.css";
 
+const formatearCitasIniciales = () =>
+  citasEstaticas.map(c => ({
+    ...c, estado: c.estado || "Pendiente", mascotas: c.mascota, clientes: { nombre_completo: "Dueño Simulado" }
+  }));
+
 export default function Medico() {
   const navigate = useNavigate();
-  const [veterinario, setVeterinario] = useState(null);
-  const [citas, setCitas] = useState([]);
+  // Veterinario estático: no depende de ningún evento externo, se inicializa directamente
+  const [veterinario] = useState({ id_veterinario: 1, email: "vetalejandro@gmail.com", nombre_completo: "Dr. Alejandro", especialidad: "General" });
+  // Citas estáticas: se formatean una sola vez al iniciar el componente
+  const [citas, setCitas] = useState(formatearCitasIniciales);
   const [citaSeleccionada, setCitaSeleccionada] = useState(null);
   const [historialMascota, setHistorialMascota] = useState([]);
   const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date());
@@ -18,31 +25,12 @@ export default function Medico() {
   });
   const [mensaje, setMensaje] = useState("");
 
-  useEffect(() => {
-    setVeterinario({ id_veterinario: 1, email: "vetalejandro@gmail.com", nombre_completo: "Dr. Alejandro", especialidad: "General" });
-  }, []);
-
-  useEffect(() => {
-    if (veterinario) cargarCitas();
-  }, [veterinario, fechaSeleccionada]);
-
-  const cargarCitas = () => {
-    // Usamos las citas estáticas y aseguramos que tengan la estructura necesaria
-    const citasFormateadas = citasEstaticas.map(c => ({
-      ...c, estado: c.estado || "Pendiente", mascotas: c.mascota, clientes: { nombre_completo: "Dueño Simulado" }
-    }));
-    setCitas(citasFormateadas);
-  };
-
-  useEffect(() => {
-    if (!citaSeleccionada) {
-      setHistorialMascota([]);
-      return;
-    }
-    // Filtramos el historial estático
-    setHistorialMascota(historialEstatico.filter(h => h.id_mascota === citaSeleccionada.mascota?.id_mascota || 1));
+  const seleccionarCita = (cita) => {
+    const historial = historialEstatico.filter(h => h.id_mascota === cita.mascota?.id_mascota || 1);
+    setHistorialMascota(historial);
     setFormulario({ nombre_cliente: "", peso_kg: "", temperatura_c: "", costo_consulta: "", sintomas: "", diagnostico: "", tratamiento: "", notas_adicionales: "" });
-  }, [citaSeleccionada]);
+    setCitaSeleccionada(cita);
+  };
 
   const handleLogout = () => navigate("/login");
 
@@ -55,7 +43,76 @@ export default function Medico() {
     setCitas(prev => prev.map(c => c.id_cita === id_cita ? { ...c, estado: "Cancelada" } : c));
   };
 
-  // ... (Conserva intacta la función generarRecetaPDF) ...
+  const generarRecetaPDF = () => {
+    if (!citaSeleccionada) return;
+
+    const doc = new jsPDF();
+    const mascota = citaSeleccionada.mascotas || citaSeleccionada.mascota || {};
+    const nombreDueno = formulario.nombre_cliente || citaSeleccionada.clientes?.nombre_completo || "No especificado";
+    const fechaActual = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    // Encabezado
+    doc.setFontSize(18);
+    doc.setTextColor(40, 116, 166);
+    doc.text("Patitas Sanas", 20, 20);
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Receta Médica y Comprobante de Pago", 20, 28);
+    doc.line(20, 32, 190, 32);
+
+    // Datos generales
+    doc.setFontSize(11);
+    let y = 42;
+    doc.text(`Fecha: ${fechaActual}`, 20, y);
+    y += 8;
+    doc.text(`Veterinario: ${veterinario?.nombre_completo || "No especificado"}`, 20, y);
+    y += 8;
+    doc.text(`Cliente / Dueño: ${nombreDueno}`, 20, y);
+    y += 8;
+    doc.text(`Mascota: ${mascota.nombre || "No especificado"} (${mascota.especie || "N/A"})`, 20, y);
+    y += 8;
+    doc.text(`Peso: ${formulario.peso_kg || "N/A"} kg   Temperatura: ${formulario.temperatura_c || "N/A"} °C`, 20, y);
+
+    y += 12;
+    doc.setFont(undefined, 'bold');
+    doc.text("Síntomas:", 20, y);
+    doc.setFont(undefined, 'normal');
+    y += 7;
+    doc.text(doc.splitTextToSize(formulario.sintomas || "Sin síntomas registrados.", 170), 20, y);
+
+    y += 18;
+    doc.setFont(undefined, 'bold');
+    doc.text("Diagnóstico:", 20, y);
+    doc.setFont(undefined, 'normal');
+    y += 7;
+    doc.text(doc.splitTextToSize(formulario.diagnostico || "Sin diagnóstico registrado.", 170), 20, y);
+
+    y += 18;
+    doc.setFont(undefined, 'bold');
+    doc.text("Tratamiento / Receta:", 20, y);
+    doc.setFont(undefined, 'normal');
+    y += 7;
+    doc.text(doc.splitTextToSize(formulario.tratamiento || "Sin tratamiento registrado.", 170), 20, y);
+
+    if (formulario.notas_adicionales) {
+      y += 18;
+      doc.setFont(undefined, 'bold');
+      doc.text("Notas adicionales:", 20, y);
+      doc.setFont(undefined, 'normal');
+      y += 7;
+      doc.text(doc.splitTextToSize(formulario.notas_adicionales, 170), 20, y);
+    }
+
+    y += 20;
+    doc.line(20, y, 190, y);
+    y += 8;
+    doc.setFontSize(13);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Costo total de la consulta: $${formulario.costo_consulta || "0.00"}`, 20, y);
+
+    const nombreArchivo = `Receta_${mascota.nombre || "mascota"}_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(nombreArchivo);
+  };
 
   const guardarConsulta = () => {
     if (!formulario.diagnostico) { setMensaje("⚠️ El diagnóstico es obligatorio."); return; }
@@ -156,7 +213,7 @@ export default function Medico() {
                     <div className="action-col">
                       <button 
                         className={`btn-atender ${cita.estado === "Completada" ? "btn-editar" : ""}`}
-                        onClick={() => setCitaSeleccionada(cita)}
+                        onClick={() => seleccionarCita(cita)}
                         disabled={cita.estado === "Cancelada"}
                         style={{ pointerEvents: 'auto', opacity: cita.estado === "Cancelada" ? 0.5 : 1 }}
                       >

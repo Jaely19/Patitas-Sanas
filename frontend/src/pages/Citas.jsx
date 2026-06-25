@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { citasEstaticas } from '../models/citas'; 
 import './Citas.css';
 
 function Citas() {
-  const navigate = useNavigate();
   const [citas, setCitas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [borrando, setBorrando] = useState(null);
+  const [error, setError] = useState(null);
 
   const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
@@ -15,8 +15,15 @@ function Citas() {
   useEffect(() => {
     // Simulamos un pequeño tiempo de carga visual
     setTimeout(() => {
-      setCitas(citasEstaticas);
-      setCargando(false);
+      try {
+        setCitas(citasEstaticas);
+        setError(null);
+      } catch (err) {
+        console.error('Error al cargar citas estáticas:', err);
+        setError('No se pudieron cargar tus citas. Intenta de nuevo más tarde.');
+      } finally {
+        setCargando(false);
+      }
     }, 500);
   }, []);
 
