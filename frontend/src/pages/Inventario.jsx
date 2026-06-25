@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabase';
-
+import { inventarioEstatico } from '../models/inventario'; // Importamos el modelo estático
 
 export const Inventario = () => {
   const navigate = useNavigate();
@@ -17,28 +16,17 @@ export const Inventario = () => {
     stock_minimo: 5
   });
 
+  // 1. Cargamos el inventario estático al iniciar
   useEffect(() => {
-    fetchInventario();
+    // Simulamos un leve tiempo de carga
+    setTimeout(() => {
+      setProductos(inventarioEstatico);
+      setCargando(false);
+    }, 400);
   }, []);
 
-  const fetchInventario = async () => {
-    setCargando(true);
-    try {
-      const { data, error } = await supabase
-        .from('inventario')
-        .select('*')
-        .order('nombre', { ascending: true });
-
-      if (error) throw error;
-      if (data) setProductos(data);
-    } catch (error) {
-      console.error('Error al cargar el inventario:', error.message);
-    } finally {
-      setCargando(false);
-    }
-  };
-
-  const handleModificarStock = async (id_producto, cantidadActual, cambio) => {
+  // 2. Modificar stock de forma estática
+  const handleModificarStock = (id_producto, cantidadActual, cambio) => {
     const nuevaCantidad = cantidadActual + cambio;
 
     if (nuevaCantidad < 0) {
@@ -46,56 +34,38 @@ export const Inventario = () => {
       return;
     }
 
-    try {
-      const { error } = await supabase
-        .from('inventario')
-        .update({ cantidad: nuevaCantidad })
-        .eq('id_producto', id_producto);
-
-      if (error) throw error;
-
-      setProductos(prevProductos =>
-        prevProductos.map(prod =>
-          prod.id_producto === id_producto ? { ...prod, cantidad: nuevaCantidad } : prod
-        )
-      );
-    } catch (error) {
-      alert(`Error al actualizar el stock: ${error.message}`);
-    }
+    setProductos(prevProductos =>
+      prevProductos.map(prod =>
+        prod.id_producto === id_producto ? { ...prod, cantidad: nuevaCantidad } : prod
+      )
+    );
   };
 
-  const handleAgregarProducto = async (e) => {
+  // 3. Agregar producto de forma estática
+  const handleAgregarProducto = (e) => {
     e.preventDefault(); 
     if (!nuevoProducto.nombre || !nuevoProducto.unidad) {
       alert("Por favor, llena el nombre y la unidad del producto.");
       return;
     }
 
-    try {
-      const { error } = await supabase
-        .from('inventario')
-        .insert([{
-          nombre: nuevoProducto.nombre,
-          categoria: nuevoProducto.categoria,
-          cantidad: Number(nuevoProducto.cantidad),
-          unidad: nuevoProducto.unidad,
-          stock_minimo: Number(nuevoProducto.stock_minimo)
-        }]);
+    const nuevoItem = {
+      id_producto: Date.now(), // Generamos un ID estático temporal
+      nombre: nuevoProducto.nombre,
+      categoria: nuevoProducto.categoria,
+      cantidad: Number(nuevoProducto.cantidad),
+      unidad: nuevoProducto.unidad,
+      stock_minimo: Number(nuevoProducto.stock_minimo)
+    };
 
-      if (error) throw error;
-
-      alert("Producto agregado exitosamente al inventario.");
-      setMostrarFormulario(false);
-      setNuevoProducto({ nombre: '', categoria: 'Medicamentos', cantidad: 0, unidad: '', stock_minimo: 5 });
-      fetchInventario(); 
-
-    } catch (error) {
-      alert(`Error al agregar el producto: ${error.message}`);
-    }
+    setProductos([...productos, nuevoItem]);
+    alert("Producto agregado exitosamente al inventario.");
+    setMostrarFormulario(false);
+    setNuevoProducto({ nombre: '', categoria: 'Medicamentos', cantidad: 0, unidad: '', stock_minimo: 5 });
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  // 4. Logout estático
+  const handleLogout = () => {
     navigate('/login');
   };
 
@@ -103,6 +73,8 @@ export const Inventario = () => {
     if (filtroCategoria === 'Todos') return true;
     return prod.categoria === filtroCategoria;
   });
+
+  // ... (Conserva tu código a partir de aquí: getStockBadge y todo el return)
 
   const getStockBadge = (producto) => {
     if (producto.cantidad === 0) {

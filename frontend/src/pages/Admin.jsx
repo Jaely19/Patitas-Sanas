@@ -1,136 +1,90 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabase';
+// Importamos los modelos
+import { veterinariosEstaticos } from '../models/veterinarios';
+import { recepcionistasEstaticas } from '../models/recepcionistas';
+import { mascotasEstaticas } from '../models/mascotas';
 import './DashRec.css';
 
 export const Admin = () => {
   const navigate = useNavigate();
-  const [seccionActiva, setSeccionActiva] = useState('pacientes'); // Iniciamos en pacientes para probar
+  const [seccionActiva, setSeccionActiva] = useState('pacientes'); 
   
-  // Estados para Personal
   const [veterinarios, setVeterinarios] = useState([]);
   const [recepcionistas, setRecepcionistas] = useState([]);
   const [cargandoPersonal, setCargandoPersonal] = useState(false);
 
-  // Estados para Pacientes
   const [pacientes, setPacientes] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [cargandoPacientes, setCargandoPacientes] = useState(false);
 
-  // Estados para el Modal
   const [modalActivo, setModalActivo] = useState(null);
   const [guardando, setGuardando] = useState(false);
-  const [formData, setFormData] = useState({
-    nombre: '',
-    especialidad: '',
-    correo: '',
-    telefono: ''
-  });
+  const [formData, setFormData] = useState({ nombre: '', especialidad: '', correo: '', telefono: '' });
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/login');
-  };
+  const handleLogout = () => navigate('/login');
 
   useEffect(() => {
-    // Si cambiamos de seccion, cargamos lo necesario
     if (seccionActiva === 'personal') fetchPersonal();
     if (seccionActiva === 'pacientes') fetchPacientes();
   }, [seccionActiva]);
 
-  // Funciones del personal
-  const fetchPersonal = async () => {
+  const fetchPersonal = () => {
     setCargandoPersonal(true);
-    try {
-      const [vetRes, recRes] = await Promise.all([
-        supabase.from('veterinarios').select('*').order('id_veterinario', { ascending: true }),
-        supabase.from('recepcionistas').select('*').order('id_recepcionista', { ascending: true })
-      ]);
-
-      if (vetRes.error) throw vetRes.error;
-      if (recRes.error) throw recRes.error;
-
-      setVeterinarios(vetRes.data || []);
-      setRecepcionistas(recRes.data || []);
-    } catch (error) {
-      console.error("Error al cargar personal:", error.message);
-    } finally {
+    setTimeout(() => {
+      setVeterinarios(veterinariosEstaticos);
+      setRecepcionistas(recepcionistasEstaticas);
       setCargandoPersonal(false);
+    }, 300);
+  };
+
+  const handleDarDeBaja = (id, tipo) => {
+    if (!window.confirm("¿Dar de baja a este empleado?")) return;
+    if (tipo === 'veterinario') {
+      setVeterinarios(prev => prev.filter(v => v.id_veterinario !== id));
+    } else {
+      setRecepcionistas(prev => prev.filter(r => r.id_recepcionista !== id));
     }
+    alert('Empleado dado de baja visualmente.');
   };
 
-  const handleDarDeBaja = async (id, tipo) => {
-    const confirmacion = window.confirm("¿Estás seguro de que deseas dar de baja a este empleado? Esta acción no se puede deshacer.");
-    if (!confirmacion) return;
+  const abrirModal = (tipo) => { setModalActivo(tipo); setFormData({ nombre: '', especialidad: '', correo: '', telefono: '' }); };
+  const cerrarModal = () => setModalActivo(null);
 
-    try {
-      const tabla = tipo === 'veterinario' ? 'veterinarios' : 'recepcionistas';
-      const columnaId = tipo === 'veterinario' ? 'id_veterinario' : 'id_recepcionista';
-      
-      const { error } = await supabase.from(tabla).delete().eq(columnaId, id);
-      
-      if (error) throw error;
-      
-      alert('Empleado dado de baja correctamente.');
-      fetchPersonal(); 
-    } catch (error) {
-      alert(`Error al eliminar: ${error.message}`);
-    }
-  };
-
-  const abrirModal = (tipo) => {
-    setModalActivo(tipo);
-    setFormData({ nombre: '', especialidad: '', correo: '', telefono: '' });
-  };
-
-  const cerrarModal = () => {
-    setModalActivo(null);
-  };
-
-  const handleGuardarPersonal = async (e) => {
+  const handleGuardarPersonal = (e) => {
     e.preventDefault();
     setGuardando(true);
-
-    try {
+    setTimeout(() => {
       if (modalActivo === 'veterinario') {
-        const { error } = await supabase.from('veterinarios').insert([
-          { nombre_completo: formData.nombre, especialidad: formData.especialidad || 'General' }
-        ]);
-        if (error) throw error;
-        alert('👨‍⚕️ Veterinario agregado con éxito.');
-      } else if (modalActivo === 'recepcionista') {
-        const { error } = await supabase.from('recepcionistas').insert([
-          { nombre_completo: formData.nombre, correo: formData.correo, telefono: formData.telefono }
-        ]);
-        if (error) throw error;
-        alert('👩‍💻 Recepcionista agregada con éxito.');
+        setVeterinarios([...veterinarios, { id_veterinario: Date.now(), nombre_completo: formData.nombre, especialidad: formData.especialidad || 'General' }]);
+        alert('👨‍⚕️ Veterinario agregado.');
+      } else {
+        setRecepcionistas([...recepcionistas, { id_recepcionista: Date.now(), nombre_completo: formData.nombre, correo: formData.correo, telefono: formData.telefono }]);
+        alert('👩‍💻 Recepcionista agregada.');
       }
-
       cerrarModal();
-      fetchPersonal();
-    } catch (error) {
-      alert(`Error al guardar: ${error.message}`);
-    } finally {
       setGuardando(false);
-    }
+    }, 400);
   };
 
-  // --- FUNCIONES DE PACIENTES ---
-  const fetchPacientes = async () => {
+  const fetchPacientes = () => {
     setCargandoPacientes(true);
-    const { data, error } = await supabase
-      .from('mascotas')
-      .select('*, clientes(nombre_completo, telefono, correo)'); // Join con clientes
-    
-    if (!error) setPacientes(data || []);
-    setCargandoPacientes(false);
+    setTimeout(() => {
+      // Simulamos el Join con el cliente
+      const pacientesConDueño = mascotasEstaticas.map(m => ({
+        ...m, clientes: { nombre_completo: "Dueño Simulado", telefono: "5500000000", correo: "correo@demo.com" }
+      }));
+      setPacientes(pacientesConDueño);
+      setCargandoPacientes(false);
+    }, 300);
   };
 
-  // Filtro de búsqueda en tiempo real
   const pacientesFiltrados = pacientes.filter(p => 
     p.nombre.toLowerCase().includes(searchQuery.toLowerCase()) || 
     p.clientes?.nombre_completo?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // ... (Conserva tu función renderContenido y todo el return exactamente igual)
 
   // --- RENDERIZADO CONDICIONAL DE SECCIONES ---
   const renderContenido = () => {

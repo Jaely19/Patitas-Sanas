@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { supabase } from '../supabase';
+import { veterinariosEstaticos } from '../models/veterinarios'; // 1. Importamos el modelo
 import './AgendarCita.css';
 
 function AgendarCita() {
@@ -27,17 +27,13 @@ function AgendarCita() {
   const [veterinarioSeleccionado, setVeterinarioSeleccionado] = useState('');
   const [guardando, setGuardando] = useState(false);
 
+  // 2. Cargamos los veterinarios desde nuestro archivo estático
   useEffect(() => {
-    const cargarVeterinarios = async () => {
-      const { data } = await supabase
-        .from('veterinarios')
-        .select('id_veterinario, nombre_completo, especialidad');
-      setVeterinarios(data || []);
-    };
-    cargarVeterinarios();
+    setVeterinarios(veterinariosEstaticos);
   }, []);
 
-  const guardarRegistroCita = async (e) => {
+  // 3. Simulamos el guardado de la cita
+  const guardarRegistroCita = (e) => {
     e.preventDefault();
     if (!veterinarioSeleccionado) {
       alert('Por favor selecciona un veterinario.');
@@ -45,89 +41,21 @@ function AgendarCita() {
     }
     setGuardando(true);
 
-    try {
-      let idCliente = null;
-      let correoParaCliente = null;
-      if (origen === 'cliente') {
-        const { data: { session } } = await supabase.auth.getSession();
-        correoParaCliente = session?.user?.email || null;
-
-        if (correoParaCliente) {
-          const { data: clienteExistente } = await supabase
-            .from('clientes')
-            .select('id_cliente')
-            .eq('correo', correoParaCliente)
-            .maybeSingle();
-
-          if (clienteExistente) {
-            idCliente = clienteExistente.id_cliente;
-          }
-        }
-      }
-
-      if (!idCliente) {
-        const { data: clienteInsertado, error: errorCliente } = await supabase
-          .from('clientes')
-          .insert([{ 
-            nombre_completo: nombreDueño, 
-            telefono: telefono, 
-            direccion: direccion,
-            correo: correoParaCliente 
-          }])
-          .select()
-          .single();
-
-        if (errorCliente) throw errorCliente;
-        idCliente = clienteInsertado.id_cliente;
-      }
-
-      const { data: mascotaInsertada, error: errorMascota } = await supabase
-        .from('mascotas')
-        .insert([{ 
-          nombre: nombreMascota, 
-          especie: especie, 
-          id_cliente: idCliente 
-        }])
-        .select()
-        .single();
-
-      if (errorMascota) throw errorMascota;
-
-      let [time, modifier] = horaSeleccionada.split(' ');
-      let [hours, minutes] = time.split(':');
-      if (hours === '12') hours = '00';
-      if (modifier === 'PM') hours = parseInt(hours, 10) + 12;
+    // Simulamos un leve retraso para que el usuario perciba que el sistema está "procesando"
+    setTimeout(() => {
+      alert(`¡Cita Agendada (Modo Estático)!\n\nPaciente: ${nombreMascota}\nDueño: ${nombreDueño}\nFecha: ${diaSeleccionado} de ${meses[mesActual]} a las ${horaSeleccionada}`);
       
-      const mesFormateado = String(mesActual + 1).padStart(2, '0');
-      const diaFormateado = String(diaSeleccionado).padStart(2, '0');
-      const timestampCita = `${anioActual}-${mesFormateado}-${diaFormateado}T${hours}:${minutes}:00-06:00`;
+      setGuardando(false);
 
-      const { error: errorCita } = await supabase
-        .from('citas')
-        .insert([{
-          fecha_hora: timestampCita,
-          motivo: servicio,
-          id_mascota: mascotaInsertada.id_mascota,
-          id_veterinario: parseInt(veterinarioSeleccionado)
-        }]);
-
-      if (errorCita) throw errorCita;
-
-      alert(`¡Cita Agendada!\n\nPaciente: ${nombreMascota}\nFecha: ${diaSeleccionado} de ${meses[mesActual]} a las ${horaSeleccionada}`);
-      
       if (origen === 'recepcion') {
         navigate('/recepcion');
       } else {
         navigate('/mis-citas'); 
       }
-
-    } catch (err) {
-      alert('Hubo un error al guardar la reservación.');
-      console.error('Detalle del error:', err.message);
-    } finally {
-      setGuardando(false);
-    }
+    }, 600);
   };
+
+  // ... (A partir de aquí, conserva tu función renderDias y todo el bloque del `return` intacto)
 
   const renderDias = () => {
     const dias = [];

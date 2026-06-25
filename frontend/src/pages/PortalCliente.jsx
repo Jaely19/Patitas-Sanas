@@ -1,12 +1,12 @@
 import { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../supabase';
 import { CartContext } from '../tienda/CartContext';
+import { mascotasEstaticas } from '../models/mascotas';
+import { citasEstaticas } from '../models/citas';
 import './PortalCliente.css';
 
 function PortalCliente() {
   const [usuarioNombre, setUsuarioNombre] = useState('');
-  const [usuarioId, setUsuarioId] = useState(null); 
   const [cargando, setCargando] = useState(true);
   const [totalMascotas, setTotalMascotas] = useState(0);
   const [citasPendientes, setCitasPendientes] = useState(0);
@@ -16,111 +16,49 @@ function PortalCliente() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    obtenerSesion();
+    cargarDatosSimulados();
   }, []);
 
-  const obtenerSesion = async () => {
-    try {
-      const { data: { session }, error: authError } = await supabase.auth.getSession();
-      if (authError || !session) return navigate('/login');
+  const cargarDatosSimulados = () => {
+    // Simulamos al cliente "logueado" directamente en el estado,
+    // sin pedir nada a una base de datos.
+    setUsuarioNombre('Usuario Demo');
 
-      setUsuarioId(session.user.id); 
+    // --- Estadísticas a partir de los modelos estáticos ---
+    // Mascotas: simplemente contamos cuántas hay en el arreglo
+    setTotalMascotas(mascotasEstaticas.length);
 
-      const { data: cliente, error } = await supabase
-        .from('clientes')
-        .select('id_cliente, nombre_completo') 
-        .eq('correo', session.user.email)
-        .single();
+    // Citas pendientes: contamos las que no estén Canceladas ni Completadas
+    const pendientes = citasEstaticas.filter(
+      (cita) => cita.estado !== 'Cancelada' && cita.estado !== 'Completada'
+    );
+    setCitasPendientes(pendientes.length);
 
-      if (error) throw error;
-      if (cliente) {
-        setUsuarioNombre(cliente.nombre_completo);
-        fetchEstadisticasCliente(cliente.id_cliente);
-      }
-    } catch (error) {
-      console.error("Error al obtener sesión:", error.message);
-    } finally {
-      setCargando(false);
-    }
-  };
-
-  const fetchEstadisticasCliente = async (idClienteNum) => {
-    try {
-      // --- 1. Consulta de Mascotas ---
-      const { data: mascotasData, error: errMascotas } = await supabase
-        .from('mascotas')
-        .select('id_mascota') 
-        .eq('id_cliente', idClienteNum); 
-
-      if (errMascotas) {
-        console.error("❌ Falla en tabla 'mascotas':", errMascotas);
-        return; 
-      }
-
-      setTotalMascotas(mascotasData ? mascotasData.length : 0);
-
-      // --- 2. Consulta de Citas ---
-      if (mascotasData && mascotasData.length > 0) {
-        const idsMascotas = mascotasData.map(m => m.id_mascota);
-
-        const { count: citasCount, error: errCitas } = await supabase
-          .from('citas')
-          .select('*', { count: 'exact', head: true })
-          .in('id_mascota', idsMascotas) 
-          .neq('estado', 'Cancelada')
-          .neq('estado', 'Completada');
-          
-        if (errCitas) {
-          console.error("❌ Falla en tabla 'citas':", errCitas);
-        } else if (citasCount !== null) {
-          setCitasPendientes(citasCount);
-        }
-      } else {
-        setCitasPendientes(0);
-      }
-    } catch (error) {
-      console.error("Error general en estadísticas:", error.message);
-    }
+    setCargando(false);
   };
 
   const calcularTotal = () => {
-    if (!carrito) return 0; 
+    if (!carrito) return 0;
     return carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
   };
 
-  const handleConfirmarPago = async () => {
+  const handleConfirmarPago = () => {
     if (carrito.length === 0) return;
-    
+
     setProcesandoPago(true);
     setErrorPago(null);
 
-    try {
-      const itemsPayload = carrito.map(item => ({
-        id: Number(item.id), 
-        cantidad: item.cantidad,
-        precio: item.precio
-      }));
-
-      const { error: rpcError } = await supabase.rpc('procesar_compra', {
-        p_usuario_id: usuarioId,
-        p_total: calcularTotal(),
-        p_items: itemsPayload
-      });
-
-      if (rpcError) throw rpcError;
+    // Simulamos el procesamiento del pago "en memoria",
+    // sin llamar a ningún backend ni RPC.
+    setTimeout(() => {
       vaciarCarrito();
-      alert('¡Compra realizada con éxito! 🐾 Tu pedido ha sido registrado.');
-      
-    } catch (err) {
-      console.error('Error al procesar la compra:', err);
-      setErrorPago(err.message || 'Ocurrió un error al procesar el pago.');
-    } finally {
       setProcesandoPago(false);
-    }
+      alert('¡Compra realizada con éxito! 🐾 Tu pedido ha sido registrado.');
+    }, 600); // pequeño delay simulado, opcional
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const handleLogout = () => {
+    // Ya no hay sesión real que cerrar, solo regresamos al inicio.
     navigate('/');
   };
 
@@ -140,7 +78,7 @@ function PortalCliente() {
       </aside>
 
       <main className="portal-main-content">
-        
+
         <div className="portal-header-main">
           <div>
             <h1>¡Hola, {usuarioNombre}! </h1>
@@ -168,7 +106,7 @@ function PortalCliente() {
           </div>
         </div>
 
-        
+
         {carrito && carrito.length > 0 && (
           <section className="cart-summary">
             <h2>Resumen de tu Compra 🛒</h2>
@@ -187,8 +125,8 @@ function PortalCliente() {
 
             {errorPago && <div className="error-box">Error: {errorPago}</div>}
 
-            <button 
-              className="btn-primario btn-full" 
+            <button
+              className="btn-primario btn-full"
               onClick={handleConfirmarPago}
               disabled={procesandoPago}
             >
@@ -199,38 +137,38 @@ function PortalCliente() {
 
         <section className="pet-care-tips">
           <h2>Cuidados que debes tener con las mascotas y los niños </h2>
-          
+
           <div className="tips-grid">
             <div className="tip-card">
               <span className="tip-icon">👀</span>
               <p><strong>Supervísalos siempre.</strong> De forma permanente, no los dejes solos.</p>
             </div>
-            
+
             <div className="tip-card">
               <span className="tip-icon">🤝</span>
               <p><strong>Enséñales el respeto mutuo.</strong></p>
             </div>
-            
+
             <div className="tip-card">
               <span className="tip-icon">🧼</span>
               <p><strong>Higiene ante todo.</strong> Evita que los niños besen a las mascotas o ingieran alimentos después de tocarlas sin lavarse las manos.</p>
             </div>
-            
+
             <div className="tip-card">
               <span className="tip-icon">✂️</span>
               <p><strong>Cuidados necesarios.</strong> Bríndale a tu mascota los cuidados que requiere para mantenerse sana; así también proteges a los niños.</p>
             </div>
-            
+
             <div className="tip-card">
               <span className="tip-icon">🐿️</span>
               <p><strong>No tengas animales silvestres.</strong> Está prohibido y es un gran riesgo tanto para los niños como para las mascotas.</p>
             </div>
-            
+
             <div className="tip-card">
               <span className="tip-icon">🚧</span>
               <p><strong>Pon límites.</strong> Cada uno debe tener su espacio establecido para dormir, comer, etc.</p>
             </div>
-            
+
             <div className="tip-card">
               <span className="tip-icon">❤️</span>
               <p><strong>No son juguetes.</strong> Muéstrales a los niños que las mascotas sienten y merecen respeto.</p>

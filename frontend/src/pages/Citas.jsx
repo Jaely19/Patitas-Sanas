@@ -1,95 +1,37 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../supabase';
+import { citasEstaticas } from '../models/citas'; // 1. Importar el modelo
 import './Citas.css';
 
 function Citas() {
   const navigate = useNavigate();
   const [citas, setCitas] = useState([]);
   const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState(null);
   const [borrando, setBorrando] = useState(null);
 
   const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
+  // 2. Carga rápida de citas estáticas
   useEffect(() => {
-    cargarCitas();
+    // Simulamos un pequeño tiempo de carga visual
+    setTimeout(() => {
+      setCitas(citasEstaticas);
+      setCargando(false);
+    }, 500);
   }, []);
 
-  const cargarCitas = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return navigate('/login');
-
-      const correo = session.user.email;
-      const { data: clientes, error: errorClientes } = await supabase
-        .from('clientes')
-        .select('id_cliente')
-        .eq('correo', correo);
-
-      if (errorClientes) throw errorClientes;
-      if (!clientes || clientes.length === 0) {
-        setCitas([]);
-        setCargando(false);
-        return;
-      }
-
-      const idsClientes = clientes.map(c => c.id_cliente);
-      const { data: mascotas, error: errorMascotas } = await supabase
-        .from('mascotas')
-        .select('id_mascota, nombre, especie')
-        .in('id_cliente', idsClientes);
-
-      if (errorMascotas) throw errorMascotas;
-      if (!mascotas || mascotas.length === 0) {
-        setCitas([]);
-        setCargando(false);
-        return;
-      }
-
-      const idsMascotas = mascotas.map(m => m.id_mascota);
-      const { data: citasData, error: errorCitas } = await supabase
-        .from('citas')
-        .select('*')
-        .in('id_mascota', idsMascotas)
-        .order('fecha_hora', { ascending: true });
-
-      if (errorCitas) throw errorCitas;
-
-      const citasConMascota = (citasData || []).map(cita => {
-        const mascota = mascotas.find(m => m.id_mascota === cita.id_mascota);
-        return { ...cita, mascota };
-      });
-
-      setCitas(citasConMascota);
-    } catch (err) {
-      console.error('Error cargando citas:', err.message);
-      setError('No se pudieron cargar tus citas. Intenta de nuevo.');
-    } finally {
-      setCargando(false);
-    }
-  };
-
-  const borrarCita = async (idCita) => {
+  // 3. Simular el borrado (solo se oculta visualmente)
+  const borrarCita = (idCita) => {
     const confirmar = window.confirm('¿Seguro que quieres cancelar esta cita?');
     if (!confirmar) return;
 
     setBorrando(idCita);
-    try {
-      const { error } = await supabase
-        .from('citas')
-        .delete()
-        .eq('id_cita', idCita);
-
-      if (error) throw error;
-
+    
+    setTimeout(() => {
+      // Filtramos el arreglo para quitar la cita eliminada
       setCitas(prev => prev.filter(c => (c.id_cita || c.id) !== idCita));
-    } catch (err) {
-      console.error('Error borrando cita:', err.message);
-      alert('No se pudo cancelar la cita. Intenta de nuevo.');
-    } finally {
       setBorrando(null);
-    }
+    }, 400); // Simulamos retraso de red
   };
 
   const formatearFecha = (fechaISO) => {
@@ -105,6 +47,8 @@ function Citas() {
   };
 
   const esFutura = (fechaISO) => new Date(fechaISO) >= new Date();
+
+  // ... (Conserva todo el código a partir del `if (cargando) return (...)` hasta el final)
 
   if (cargando) return (
     <div className="citas-wrapper">

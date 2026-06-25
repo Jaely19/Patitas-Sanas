@@ -1,13 +1,12 @@
 import React, { useContext } from 'react';
 import { CartContext } from './CartContext';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
 import { jsPDF } from "jspdf";
-import { supabase } from '../supabase';
 import './Tienda.css';
 
 const Cart = () => {
   const { carrito, eliminarDelCarrito } = useContext(CartContext);
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   const total = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
 
@@ -49,14 +48,11 @@ const Cart = () => {
 
     doc.save("ticket_patitas_sanas.pdf");
   };
-  const procesarPago = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
 
-    if (!session) {
-      navigate('/login', { state: { returnTo: '/portal-cliente' } });
-    } else {
-      navigate('/portal-cliente');
-    }
+  const procesarPago = () => {
+    // Entorno estático: no hay sesión real que verificar,
+    // así que siempre se permite avanzar al portal del cliente.
+    navigate('/portal-cliente');
   };
 
   return (

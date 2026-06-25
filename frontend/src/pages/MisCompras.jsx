@@ -1,66 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../supabase'; 
 import { useNavigate } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
+import { comprasEstaticas } from '../models/compras'; // 1. Importamos el modelo
 import './MisCompras.css';
 
 export const MisCompras = () => {
   const [compras, setCompras] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [nombreCliente, setNombreCliente] = useState('');
+  const [nombreCliente, setNombreCliente] = useState('Cliente Demo'); // Nombre estático
   const navigate = useNavigate();
 
   useEffect(() => {
-    const cargarHistorial = async () => {
-      setLoading(true);
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError || !user) {
-        setError('No se pudo verificar la sesión.');
-        setLoading(false);
-        return;
-      }
-      const { data: clienteData } = await supabase
-        .from('clientes')
-        .select('nombre_completo')
-        .eq('correo', user.email)
-        .single();
-
-      if (clienteData) {
-        setNombreCliente(clienteData.nombre_completo);
-      } else {
-        setNombreCliente('Cliente de Patitas Sanas'); 
-      }
-
-      const { data, error: dbError } = await supabase
-        .from('pedidos')
-        .select(`
-          id,
-          fecha,
-          total,
-          detalles_pedido (
-            id,
-            cantidad,
-            precio_unitario,
-            productos (
-              nombre
-            )
-          )
-        `)
-        .eq('usuario_id', user.id)
-        .order('fecha', { ascending: false });
-
-      if (dbError) {
-        setError('Error al cargar el historial.');
-      } else {
-        setCompras(data || []);
-      }
+    // 2. Simulamos la carga del historial
+    setTimeout(() => {
+      setCompras(comprasEstaticas);
       setLoading(false);
-    };
-
-    cargarHistorial();
+    }, 400);
   }, []);
+
+  // ... (El resto de tu función `descargarTicket` se queda EXACTAMENTE igual)
 
   /*Generador de Ticktes*/
   const descargarTicket = (pedido) => {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabase';
+import { mascotasEstaticas } from '../models/mascotas'; // 1. Importamos modelo
 import './Mascotas.css'; 
 
 function Mascotas() {
@@ -12,36 +12,16 @@ function Mascotas() {
   const [caracteristicas, setCaracteristicas] = useState('');
   const [foto, setFoto] = useState(null); 
   const [cargando, setCargando] = useState(false); 
-  const [idCliente, setIdCliente] = useState(null);
   
   const [idMascotaEditando, setIdMascotaEditando] = useState(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   
   const navigate = useNavigate();
 
+  // 2. Cargamos los datos estáticos al iniciar
   useEffect(() => {
-    obtenerClienteYMascotas();
+    setMascotas(mascotasEstaticas);
   }, []);
-
-  const obtenerClienteYMascotas = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return navigate('/login');
-
-    const { data: cliente } = await supabase
-      .from('clientes')
-      .select('id_cliente')
-      .eq('correo', session.user.email)
-      .single();
-
-    if (cliente) {
-      setIdCliente(cliente.id_cliente);
-      const { data: mascotasData } = await supabase
-        .from('mascotas')
-        .select('*')
-        .eq('id_cliente', cliente.id_cliente);
-      setMascotas(mascotasData || []);
-    }
-  };
 
   const editarMascota = (mascota) => {
     setNombre(mascota.nombre);
@@ -57,78 +37,48 @@ function Mascotas() {
   };
 
   const cancelarEdicion = () => {
-    setNombre(''); 
-    setEspecie(''); 
-    setSexo(''); 
-    setEdad('');
-    setCaracteristicas(''); 
+    setNombre(''); setEspecie(''); setSexo(''); setEdad(''); setCaracteristicas(''); 
     setFoto(null);
     document.getElementById('foto-input').value = '';
     setIdMascotaEditando(null);
     setMostrarFormulario(false); 
   };
 
-  const guardarMascota = async () => {
+  // 3. Simulamos guardar localmente sin base de datos
+  const guardarMascota = () => {
     if (!nombre || !especie) return alert('Nombre y especie son obligatorios');
     setCargando(true);
 
-    let fotoUrl = null;
-
-    try {
-      if (foto) {
-        const fileExt = foto.name.split('.').pop();
-        const fileName = `${Date.now()}.${fileExt}`;
-        const filePath = `${idCliente}/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('fotos_mascotas')
-          .upload(filePath, foto);
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('fotos_mascotas')
-          .getPublicUrl(filePath);
-
-        fotoUrl = publicUrl;
-      }
-
-      const datosMascota = {
-        nombre, especie, sexo, edad: edad ? parseInt(edad) : null, caracteristicas
-      };
-
-      if (fotoUrl) {
-        datosMascota.foto_url = fotoUrl;
-      }
-
-      if (idMascotaEditando) {
-        const { error: dbError } = await supabase
-          .from('mascotas')
-          .update(datosMascota)
-          .eq('id_mascota', idMascotaEditando);
-          
-        if (dbError) throw dbError;
-        alert('¡Datos de la mascota actualizados!');
-      } else {
-        datosMascota.id_cliente = idCliente; 
-        const { error: dbError } = await supabase
-          .from('mascotas')
-          .insert(datosMascota);
-          
-        if (dbError) throw dbError;
-        alert('¡Mascota guardada con éxito!');
-      }
-      
-      cancelarEdicion(); 
-      obtenerClienteYMascotas();
-
-    } catch (error) {
-      console.error("Error al guardar la mascota:", error);
-      alert('Hubo un error al guardar. Revisa la consola.');
-    } finally {
-      setCargando(false);
+    let fotoUrlLocal = null;
+    // Usamos URL temporal para simular que se subió una foto en entorno estático
+    if (foto) {
+      fotoUrlLocal = URL.createObjectURL(foto); 
     }
+
+    const datosNuevos = {
+      id_mascota: idMascotaEditando || Date.now(), // Generamos ID aleatorio para las nuevas
+      nombre, especie, sexo, edad: edad ? parseInt(edad) : null, caracteristicas
+    };
+
+    if (idMascotaEditando) {
+      // Editar existente en el arreglo
+      setMascotas(mascotas.map(m => m.id_mascota === idMascotaEditando ? 
+        { ...m, ...datosNuevos, foto_url: fotoUrlLocal || m.foto_url } : m
+      ));
+      alert('¡Datos de la mascota actualizados!');
+    } else {
+      // Agregar nueva al arreglo
+      datosNuevos.foto_url = fotoUrlLocal;
+      setMascotas([...mascotas, datosNuevos]);
+      alert('¡Mascota guardada con éxito!');
+    }
+    
+    cancelarEdicion(); 
+    setCargando(false);
   };
+
+  // ... (Conserva todo el código del `return (...)` exactamente igual que como lo tienes)
+  // ... Solo asegúrate de copiar desde el return hasta el final del archivo.
 
   return (
     <div className="masc-wrap">

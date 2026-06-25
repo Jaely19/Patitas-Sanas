@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabase';
+import { citasEstaticas } from '../models/citas';
+import { inventarioEstatico } from '../models/inventario';
 import './DashRec.css';
+
 export const Recepcion = () => {
   const navigate = useNavigate();
 
@@ -13,137 +15,64 @@ export const Recepcion = () => {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    fetchCitasPorFecha(fechaSeleccionada);
+    fetchCitasPorFecha();
     fetchAlertasStock(); 
   }, [fechaSeleccionada]);
-  const fetchAlertasStock = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('inventario')
-        .select('cantidad, stock_minimo');
 
-      if (error) throw error;
-
-      if (data) {
-        const productosConAlerta = data.filter(prod => prod.cantidad <= prod.stock_minimo);
-        setAlertasStock(productosConAlerta.length);
-      }
-    } catch (error) {
-      console.error('Error al calcular las alertas de stock:', error.message);
-    }
+  const fetchAlertasStock = () => {
+    const productosConAlerta = inventarioEstatico.filter(prod => prod.cantidad <= prod.stock_minimo);
+    setAlertasStock(productosConAlerta.length);
   };
 
-  const fetchCitasPorFecha = async (fecha) => {
+  const fetchCitasPorFecha = () => {
     setCargando(true);
-    try {
-      const { data, error } = await supabase
-        .from('citas')
-        .select('*, mascotas(nombre), veterinarios(nombre_completo)')
-        .gte('fecha_hora', `${fecha}T00:00:00`)
-        .lte('fecha_hora', `${fecha}T23:59:59`)
-        .order('fecha_hora', { ascending: true });
-
-      if (error) throw error;
-
-      if (data) {
-        const citasFormateadas = data.map(cita => {
-          const fechaObj = new Date(cita.fecha_hora);
-          const horaFormateada = fechaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-          return {
-            id_cita: cita.id_cita,
-            time: horaFormateada,
-            isAvailable: false, 
-            isPaid: cita.estado === 'Completada', 
-            isCancelled: cita.estado === 'Cancelada', 
-            name: cita.mascotas?.nombre || 'Mascota',
-            type: cita.motivo,
-            details: `${cita.veterinarios?.nombre_completo || 'Asignado'} | Status: ${cita.estado}`,
-            monto: cita.monto || null 
-          };
-        });
-        setAgenda(citasFormateadas);
-        calcularEstadisticas(citasFormateadas);
-      }
-    } catch (error) {
-      console.error('Error al cargar las citas:', error.message);
-    } finally {
+    setTimeout(() => {
+      const citasFormateadas = citasEstaticas.map(cita => ({
+        id_cita: cita.id_cita,
+        time: cita.fecha_hora.split('T')[1].substring(0,5), // Extrae "10:00"
+        isAvailable: false, 
+        isPaid: cita.estado === 'Completada', 
+        isCancelled: cita.estado === 'Cancelada', 
+        name: cita.mascota?.nombre || 'Mascota',
+        type: cita.motivo,
+        details: `Dr. Asignado | Status: ${cita.estado || 'Pendiente'}`,
+        monto: cita.monto || null 
+      }));
+      setAgenda(citasFormateadas);
+      calcularEstadisticas(citasFormateadas);
       setCargando(false);
-    }
+    }, 400);
   };
 
   const calcularEstadisticas = (citas) => {
-    let total = 0;
-    let atendidas = 0;
+    let total = 0; let atendidas = 0;
     citas.forEach(cita => {
-      if (cita.isPaid && cita.monto) {
-        total += Number(cita.monto);
-        atendidas += 1;
-      }
+      if (cita.isPaid && cita.monto) { total += Number(cita.monto); atendidas += 1; }
     });
-    setIngresosTotales(total);
-    setCitasAtendidas(atendidas);
+    setIngresosTotales(total); setCitasAtendidas(atendidas);
   };
 
-  const handleCobrar = async (id_cita, montoActual) => {
-    try {
-      let montoACobrar = montoActual;
-      if (!montoACobrar) {
-        const inputMonto = window.prompt("Ingresa el monto a cobrar (Ej. 350):");
-        if (!inputMonto || isNaN(inputMonto) || Number(inputMonto) <= 0) {
-          alert("Debes ingresar un monto numérico mayor a 0.");
-          return;
-        }
-        montoACobrar = Number(inputMonto);
-      }
-      
-      const { error: errorCita } = await supabase
-        .from('citas')
-        .update({ estado: 'Completada', monto: montoACobrar })
-        .eq('id_cita', id_cita); 
-
-      if (errorCita) throw errorCita;
-
-      const { error: errorPago } = await supabase
-        .from('pagos')
-        .insert([{
-          id_cita: id_cita,
-          monto: montoACobrar,
-          metodo_pago: 'Efectivo'
-        }]);
-
-      if (errorPago) throw errorPago;
-
-      alert(`Pago de $${montoACobrar} registrado exitosamente en la base de datos.`);
-      fetchCitasPorFecha(fechaSeleccionada); 
-    } catch (error) {
-      alert(`Error al registrar el cobro en base de datos: ${error.message}`);
+  const handleCobrar = (id_cita, montoActual) => {
+    let montoACobrar = montoActual;
+    if (!montoACobrar) {
+      const inputMonto = window.prompt("Ingresa el monto a cobrar (Ej. 350):");
+      if (!inputMonto || isNaN(inputMonto) || Number(inputMonto) <= 0) return alert("Monto inválido.");
+      montoACobrar = Number(inputMonto);
     }
+    
+    setAgenda(prev => prev.map(c => c.id_cita === id_cita ? { ...c, isPaid: true, monto: montoACobrar, details: `Dr. Asignado | Status: Completada` } : c));
+    calcularEstadisticas([...agenda.filter(c => c.id_cita !== id_cita), { isPaid: true, monto: montoACobrar }]);
+    alert(`Pago de $${montoACobrar} registrado (Modo Estático).`);
   };
 
-  const handleCancelar = async (id_cita) => {
-    const confirmar = window.confirm("¿Estás seguro de que deseas cancelar esta cita?");
-    if (!confirmar) return;
-
-    try {
-      const { error } = await supabase
-        .from('citas')
-        .update({ estado: 'Cancelada' }) 
-        .eq('id_cita', id_cita);
-
-      if (error) throw error;
-      
-      alert("Cita cancelada exitosamente.");
-      fetchCitasPorFecha(fechaSeleccionada); 
-    } catch (error) {
-      alert(`Error al cancelar la cita: ${error.message}`);
-    }
+  const handleCancelar = (id_cita) => {
+    if (!window.confirm("¿Cancelar cita?")) return;
+    setAgenda(prev => prev.map(c => c.id_cita === id_cita ? { ...c, isCancelled: true, details: `Dr. Asignado | Status: Cancelada` } : c));
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/login');
-  };
+  const handleLogout = () => navigate('/login');
+
+  // ... (A partir de aquí, el código desde "const opcionesFecha" y el return quedan igual)
 
   const opcionesFecha = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
   const fechaHoyStr = new Date().toLocaleDateString('es-MX', opcionesFecha);

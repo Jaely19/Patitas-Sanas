@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { supabase } from '../supabase';
+import { usuariosEstaticos } from '../models/usuarios'; // Importamos el Modelo
 import './Login.css'; 
 
 function Login() {
@@ -14,91 +14,41 @@ function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleSubmit = async (e) => {
+  // Esta función actúa como tu Controlador
+  const handleSubmit = (e) => {
     e.preventDefault();
     const emailLimpio = email.trim();
-
-    // Cuentas Demo
-    if (emailLimpio === 'veterinario@demo.com' && password === 'vet123') {
-      navigate('/demo-veterinario');
-      return; 
-    }
-
-    if (emailLimpio === 'recepcionista@demo.com' && password === 'rec123') {
-      navigate('/demo-recepcionista');
-      return; 
-    }
-
     setCargando(true);
-    try {
-      const rutaDestino = location.state?.returnTo || '/portal-cliente';
 
-      if (!isLogin) {
-        if (!nombreCompleto) {
-          alert('Por favor ingresa tu nombre completo.');
-          setCargando(false);
-          return;
-        }
-        
-        const { data: authData, error: errorAuth } = await supabase.auth.signUp({ 
-          email: emailLimpio, 
-          password 
-        });
-        
-        if (errorAuth) throw errorAuth;
-        
-        const { error: errorCliente } = await supabase
-          .from('clientes')
-          .insert([{ 
-            nombre_completo: nombreCompleto, 
-            telefono: telefono || null, 
-            correo: emailLimpio, 
-            user_id: authData.user.id 
-          }]);
-          
-        if (errorCliente) throw errorCliente;
-        
-        alert('¡Cuenta creada con éxito!');
-        navigate(location.state?.returnTo ? rutaDestino : '/agendar-cita');
+    if (isLogin) {
+      // 1. El Controlador consulta al Modelo
+      const usuarioValido = usuariosEstaticos.find(
+        (user) => user.correo === emailLimpio && user.password === password
+      );
 
+      // 2. El Controlador decide qué hacer con la Vista
+      if (usuarioValido) {
+        alert(`Bienvenido al sistema. Accediendo como: ${usuarioValido.rol}`);
+        navigate(usuarioValido.ruta); // Redirige al panel correspondiente
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email: emailLimpio, password });
-        if (error) throw error;
-        const { data: vet } = await supabase
-          .from('veterinarios')
-          .select('*')
-          .eq('email', emailLimpio)
-          .maybeSingle();
-
-        if (vet) {
-          navigate('/panel-vet');
-          return;
-        }
-
-        const { data: rec } = await supabase
-          .from('recepcionistas')
-          .select('*')
-          .eq('email', emailLimpio)
-          .maybeSingle();
-
-        if (rec) {
-          if (rec.rol === 'Administrador') {
-            navigate('/admin');
-          } else {
-            navigate('/recepcion');
-          }
-          return;
-        }
-
+        alert('Credenciales incorrectas. Verifica tu correo y contraseña.');
+      }
+    } else {
+      // Lógica estática para "Registro" (Opcional si el profesor pide solo estático)
+      // En un entorno 100% estático sin backend, el registro es solo una simulación visual.
+      if (!nombreCompleto) {
+        alert('Por favor ingresa tu nombre completo.');
+      } else {
+        alert('Simulación de cuenta creada con éxito (Modo Estático).');
+        const rutaDestino = location.state?.returnTo || '/agendar-cita';
         navigate(rutaDestino);
       }
-    } catch (error) {
-      alert(`Error: ${error.message}`);
-    } finally {
-      setCargando(false);
     }
+    
+    setCargando(false);
   };
 
+  // Lo que retorna el componente es tu Vista
   return (
     <div className="login-wrapper">
       <div className="login-card">
@@ -123,7 +73,7 @@ function Login() {
                   placeholder="Tu nombre completo" 
                   value={nombreCompleto} 
                   onChange={(e) => setNombreCompleto(e.target.value)} 
-                  required 
+                  required={!isLogin} 
                 />
               </div>
               <div className="input-group">
