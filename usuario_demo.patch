@@ -1,0 +1,94 @@
+diff --git a/frontend/src/models/citas.js b/frontend/src/models/citas.js
+index 2c71056..4dd905c 100644
+--- a/frontend/src/models/citas.js
++++ b/frontend/src/models/citas.js
+@@ -4,12 +4,19 @@ export const citasEstaticas = [
+     id_cita: 1, 
+     fecha_hora: "2026-06-30T10:00:00", 
+     motivo: "Vacuna Antirrábica", 
+-    mascota: { nombre: "Max", especie: "Perro" } 
++    mascota: { nombre: "Max", especie: "Perro", id_mascota: 1 } 
+   },
+   { 
+     id_cita: 2, 
+     fecha_hora: "2026-04-15T12:30:00", 
+     motivo: "Revisión General", 
+-    mascota: { nombre: "Michi", especie: "Gato" } 
++    mascota: { nombre: "Michi", especie: "Gato", id_mascota: 2 } 
++  },
++  { 
++    id_cita: 3, 
++    fecha_hora: "2026-07-10T09:00:00", 
++    motivo: "Limpieza Dental",
++    estado: "Pendiente",
++    mascota: { nombre: "Pepe", especie: "Ave", id_mascota: 3 } 
+   }
+ ];
+\ No newline at end of file
+diff --git a/frontend/src/models/compras.js b/frontend/src/models/compras.js
+index 0664368..bbfef5a 100644
+--- a/frontend/src/models/compras.js
++++ b/frontend/src/models/compras.js
+@@ -32,5 +32,24 @@ export const comprasEstaticas = [
+         productos: { nombre: "Consulta General + Vacuna Quíntuple" }
+       }
+     ]
++  },
++  {
++    id: "c3d4e5f6-2468-1357-bdfa-987654321abc",
++    fecha: "2026-06-24T09:15:00Z",
++    total: 270.00,
++    detalles_pedido: [
++      {
++        id: "det-4",
++        cantidad: 1,
++        precio_unitario: 120.00,
++        productos: { nombre: "Juguete mordedor resistente" }
++      },
++      {
++        id: "det-5",
++        cantidad: 1,
++        precio_unitario: 150.00,
++        productos: { nombre: "Correa retráctil" }
++      }
++    ]
+   }
+ ];
+\ No newline at end of file
+diff --git a/frontend/src/models/mascotas.js b/frontend/src/models/mascotas.js
+index 91a20fc..587da68 100644
+--- a/frontend/src/models/mascotas.js
++++ b/frontend/src/models/mascotas.js
+@@ -16,5 +16,14 @@ export const mascotasEstaticas = [
+     edad: 2, 
+     caracteristicas: "Duerme todo el día", 
+     foto_url: "" 
++  },
++  { 
++    id_mascota: 3, 
++    nombre: "Pepe", 
++    especie: "Ave", 
++    sexo: "M", 
++    edad: 1, 
++    caracteristicas: "Canta por las mañanas", 
++    foto_url: "" 
+   }
+ ];
+\ No newline at end of file
+diff --git a/frontend/src/models/usuarios.js b/frontend/src/models/usuarios.js
+index 5a0a33d..f31ba01 100644
+--- a/frontend/src/models/usuarios.js
++++ b/frontend/src/models/usuarios.js
+@@ -17,5 +17,11 @@ export const usuariosEstaticos = [
+     password: "vet123",
+     rol: "Veterinario",
+     ruta: "/panel-vet" 
++  },
++  {
++    correo: "usuariodemo@gmail.com",
++    password: "usuario1234",
++    rol: "Cliente",
++    ruta: "/portal-cliente"
+   }
+ ];
+\ No newline at end of file

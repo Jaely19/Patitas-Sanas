@@ -17,5 +17,11 @@ export const usuariosEstaticos = [
     password: "vet123",
     rol: "Veterinario",
     ruta: "/panel-vet" 
+  },
+  {
+    correo: "usuariodemo@gmail.com",
+    password: "usuario1234",
+    rol: "Cliente",
+    ruta: "/portal-cliente"
   }
 ];

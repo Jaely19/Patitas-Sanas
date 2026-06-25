@@ -265,7 +265,6 @@ La interfaz web fue construida con un enfoque en la usabilidad y la presentació
 - **GitHub Pages**: Hospedaje del sitio estático del frontend.
 - **Vercel**: Plataforma de despliegue continuo integrada con el repositorio, utilizada para previsualización y producción.
 
-### Usuarios:
 ### Usuario de Prueba: 
 * Correo: usuariodemo@gmail.com
 * Contraseña: usuario1234
@@ -279,8 +278,8 @@ La interfaz web fue construida con un enfoque en la usabilidad y la presentació
 * Contraseña: vet123
 
 ### Admin: 
-Correo: admin@patitassanas.com
-Contraseña: Admin1234
+* Correo: admin@patitassanas.com
+* Contraseña: Admin1234
 
 ## Imagenes del Proyecto
 | Pantalla de Inicio |

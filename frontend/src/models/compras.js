@@ -32,5 +32,24 @@ export const comprasEstaticas = [
         productos: { nombre: "Consulta General + Vacuna Quíntuple" }
       }
     ]
+  },
+  {
+    id: "c3d4e5f6-2468-1357-bdfa-987654321abc",
+    fecha: "2026-06-24T09:15:00Z",
+    total: 270.00,
+    detalles_pedido: [
+      {
+        id: "det-4",
+        cantidad: 1,
+        precio_unitario: 120.00,
+        productos: { nombre: "Juguete mordedor resistente" }
+      },
+      {
+        id: "det-5",
+        cantidad: 1,
+        precio_unitario: 150.00,
+        productos: { nombre: "Correa retráctil" }
+      }
+    ]
   }
 ];

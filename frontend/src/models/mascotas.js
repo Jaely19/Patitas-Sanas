@@ -16,5 +16,14 @@ export const mascotasEstaticas = [
     edad: 2, 
     caracteristicas: "Duerme todo el día", 
     foto_url: "" 
+  },
+  { 
+    id_mascota: 3, 
+    nombre: "Pepe", 
+    especie: "Ave", 
+    sexo: "M", 
+    edad: 1, 
+    caracteristicas: "Canta por las mañanas", 
+    foto_url: "" 
   }
 ];
